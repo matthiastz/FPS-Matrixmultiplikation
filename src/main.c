@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <immintrin.h>
+#include <time.h>
+
 #include "include/Matrix.h"
 
 int main() {
@@ -21,35 +23,34 @@ int main() {
      * z-style speicherung, bezug vorbereitung / performance
      */
 
+    //--------------------------------------------------------------
 
+    // measure time variables
+    clock_t start, end;
+    double cpu_time_used;
 
-    // TODO: implement createRandomizedMatrix()
-
-    Matrix m1;
-    m1.rowCount = 2;
-    m1.columnCount = 2;
-    m1.data = malloc(m1.rowCount * m1.columnCount * sizeof(float));
-
-    setElementValue(&m1, 0, 0, 1.0);
-    setElementValue(&m1, 0, 1, 2.0);
-    setElementValue(&m1, 1, 0, 3.0);
-    setElementValue(&m1, 1, 1, 4.0);
-
-    // TODO: implement createRandomizedMatrix()
-
-    Matrix m2;
-    m2.rowCount = 2;
-    m2.columnCount = 2;
-    m2.data = malloc(m2.rowCount * m2.columnCount * sizeof(float));
-
-    setElementValue(&m2, 0, 0, 2.0);
-    setElementValue(&m2, 0, 1, 2.0);
-    setElementValue(&m2, 1, 0, 2.0);
-    setElementValue(&m2, 1, 1, 2.0);
-
+    Matrix m1, m2;
+    m1 = createRandomizedMatrix(1000, 1000);
+    m2 = createRandomizedMatrix(1000, 1000);
     Matrix result = allocMatrix(m1, m2);
+
+    start = clock();
+    // do the work
     standardMatrixMul(m1, m2, &result);
-    prettyPrint(result);
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+    //prettyPrint(result);
+    printf("standard multiplication - time used: %f seconds\n",cpu_time_used);
+
+    // cleanup allocated memory
+    freeMatrix(&m1);
+    freeMatrix(&m2);
+    freeMatrix(&result);
+
+    // TODO: diagram matrix größe - ausführungszeit
+    // 2er Potenzen meint benedikt (512, 1024, 2048)
+    // iwie davon überzeugen, dass multiplikation korrekt war (std. algo -> == "überladung")
 
     return 0;
 }

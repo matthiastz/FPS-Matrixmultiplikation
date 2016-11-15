@@ -8,6 +8,13 @@
 
 #include <stdbool.h>
 
+
+/**
+ * const matrix ????? ausgangsmatrix
+ *
+ */
+
+
 /**
  * Represents a matrix.
  */

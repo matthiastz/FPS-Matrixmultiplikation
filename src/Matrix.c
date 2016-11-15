@@ -28,6 +28,31 @@ Matrix allocMatrix(Matrix a, Matrix b) {
     return result;
 }
 
+/**
+ * create a matrix with pseudo random numbers filled. since the explicit
+ * values in out matrices are not that much important, pseudo random should be ok
+ *
+ * @param rowCount ouf our generated matrix
+ * @param columnCount ouf our generated matrix
+ * @return the created matrix
+ */
+Matrix createRandomizedMatrix(int rowCount, int columnCount) {
+    int value;
+    Matrix result;
+    // TODO: think we could need some testing here?
+    result.rowCount = rowCount;
+    result.columnCount = columnCount;
+    result.data = malloc(result.rowCount * result.columnCount * sizeof (float));
+
+    for (int i = 0; i < result.rowCount; ++i) {
+        for (int j = 0; j < result.columnCount; ++j) {
+            value = rand() % 100;   // value in the range 0 to 99
+            setElementValue(&result, i, j, value);
+        }
+    }
+    return result;
+}
+
 int freeMatrix(Matrix *matrix) {
     free(matrix->data);
     matrix->data = NULL;
@@ -50,7 +75,7 @@ float getElementValue(Matrix matrix, int i, int j) {
 
 void setElementValue(Matrix *matrix, int i, int j, float value) {
 
-    // 1 dimensional ... offset of colomn count ...
+    // 1 dimensional ... offset of column count ...
 
     int index1D = (matrix->columnCount * i) + j;
     matrix->data[index1D] = value;
@@ -61,7 +86,7 @@ int prettyPrint(Matrix matrix) {
 
     for (int i = 0; i < matrix.rowCount; ++i) {
         for (int j = 0; j < matrix.columnCount ; ++j) {
-            printf("%.2f  ", getElementValue(matrix, i, j));
+            printf("%.1f  ", getElementValue(matrix, i, j));
         }
         printf("\n");
     }
@@ -73,7 +98,8 @@ int prettyPrint(Matrix matrix) {
  *************************/
 
 int standardMatrixMul(Matrix a, Matrix b, Matrix *result) {
-    // TODO int error
+
+    // TODO check dimensions of matrices
 
     float calc;
 
