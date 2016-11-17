@@ -1,4 +1,4 @@
-# FPS-Matrixmultiplikation
+# FSP-Matrixmultiplikation
 Forschungspraktikum Parallele und Verteilte Systeme - TU Chemnitz
 
 # Kompilieren
