@@ -34,7 +34,7 @@ int main() {
     m2 = createRandomizedMatrix(1024, 1024);
     Matrix result = allocMatrix(m1, m2);
 
-     //===== standard multiplication ==================
+    //===== standard multiplication ==================
 
     start = clock();
     // do the work
