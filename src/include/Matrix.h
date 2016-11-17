@@ -92,9 +92,9 @@ int prettyPrint(Matrix matrix);
 int standardMatrixMul(Matrix a, Matrix b, Matrix *result);
 
 /**
- * Cache optimized implemetation of a matrix multiplication
+ * Cache optimized implemetation of a matrix multiplication (n x n)
  */
-int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int termination);
+int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize);
 
 /**
  * Parallel implementation of a matrix multiplication

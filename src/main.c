@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <immintrin.h>
+#include <immintrin.h>  // AVX header
 #include <time.h>
 
 #include "include/Matrix.h"
@@ -30,18 +30,30 @@ int main() {
     double cpu_time_used;
 
     Matrix m1, m2;
-    m1 = createRandomizedMatrix(1000, 1000);
-    m2 = createRandomizedMatrix(1000, 1000);
+    m1 = createRandomizedMatrix(1024, 1024);
+    m2 = createRandomizedMatrix(1024, 1024);
     Matrix result = allocMatrix(m1, m2);
+
+     //===== standard multiplication ==================
 
     start = clock();
     // do the work
     standardMatrixMul(m1, m2, &result);
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("std MM time used: %f seconds\n",cpu_time_used);
 
-    //prettyPrint(result);
-    printf("standard multiplication - time used: %f seconds\n",cpu_time_used);
+    //===== cache optimized multiplication ==================
+    // TODO: result -> to slow...
+    // TODO: idea: we could use blocked style to save / access matrices, maybe performance boost from that?
+    // TODO: implement blocked struct Matrix_Blocked
+
+    start = clock();
+    // do the work
+    optimizedMatrixMul(m1, m2, &result, 16);
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("cacheopt MM time used: %f seconds\n",cpu_time_used);
 
     // cleanup allocated memory
     freeMatrix(&m1);
@@ -49,7 +61,10 @@ int main() {
     freeMatrix(&result);
 
     // TODO: diagram matrix größe - ausführungszeit
-    // 2er Potenzen meint benedikt (512, 1024, 2048)
+    // diagramm blocksize by cache optimierung
+    // mehrfach ausführen, durchschnitt
+
+    // TODO: 2er Potenzen meint benedikt (512, 1024, 2048) -> #define?
     // iwie davon überzeugen, dass multiplikation korrekt war (std. algo -> == "überladung")
 
     return 0;

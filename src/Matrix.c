@@ -100,6 +100,9 @@ int prettyPrint(Matrix matrix) {
 int standardMatrixMul(Matrix a, Matrix b, Matrix *result) {
 
     // TODO check dimensions of matrices
+    // case 1 : a.row == b.row && a.col == b.col
+    // case 2 : a.row == b.col && a.col == b.row
+    // else error
 
     float calc;
 
@@ -115,8 +118,42 @@ int standardMatrixMul(Matrix a, Matrix b, Matrix *result) {
     }
 }
 
-int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int termination) {
 
+/**
+ * wikipedia: make the execution of loops more efficient, by increasing the locality of reference
+ *
+ * @param a
+ * @param b
+ * @param result
+ * @param blockSize
+ * @return
+ */
+int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize) {
+    // TODO: fehler/trivial behandlung blocksize variable
+
+    int BS = blockSize;
+    int N = a.rowCount;
+    double sum;
+
+    /* Loop over all the tiles, stride by tile size */
+    for (int i=0; i<N; i+=BS) {
+        for (int j=0; j<N; j+=BS) {
+            for (int k=0; k<N; k+=BS) {
+
+                /* Regular multiply inside the tiles */
+                for (int ii = i; ii < i + BS; ii++) {
+                    for (int jj = j; jj < j + BS; jj++ ) {
+
+                        sum = 0.0;
+                        for (int kk = k; kk < k + BS; kk++ ) {
+                            sum += getElementValue(a, ii, kk) * getElementValue(b, kk, jj);
+                        }
+                        setElementValue(result, ii, jj, sum);
+                    }
+                }
+            }
+        }
+    }
 }
 
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
