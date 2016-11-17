@@ -30,9 +30,28 @@ int main() {
     double cpu_time_used;
 
     Matrix m1, m2;
-    m1 = createRandomizedMatrix(1024, 1024);
-    m2 = createRandomizedMatrix(1024, 1024);
+    //m1 = createRandomizedMatrix(4, 4);
+    //m2 = createRandomizedMatrix(4, 4);
+
+    m1.rowCount = 2;
+    m1.columnCount = 2;
+    m1.data = malloc(4* sizeof (float));
+    setElementValue(&m1, 0, 0, 1);
+    setElementValue(&m1, 0, 1, 2);
+    setElementValue(&m1, 1, 0, 3);
+    setElementValue(&m1, 1, 1, 4);
+
+    m2.rowCount = 2;
+    m2.columnCount = 2;
+    m2.data = malloc(4* sizeof (float));
+    setElementValue(&m2, 0, 0, 1);
+    setElementValue(&m2, 0, 1, 2);
+    setElementValue(&m2, 1, 0, 3);
+    setElementValue(&m2, 1, 1, 4);
+
+
     Matrix result = allocMatrix(m1, m2);
+
 
     //===== standard multiplication ==================
 
@@ -42,18 +61,28 @@ int main() {
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("std MM time used: %f seconds\n",cpu_time_used);
+    prettyPrint(result);
+
+    printf("\n--------------------------------\n");
 
     //===== cache optimized multiplication ==================
+    // TODO: wrong calculation !!!
+
     // TODO: result -> to slow...
     // TODO: idea: we could use blocked style to save / access matrices, maybe performance boost from that?
     // TODO: implement blocked struct Matrix_Blocked
 
+
     start = clock();
     // do the work
-    optimizedMatrixMul(m1, m2, &result, 16);
+
+    optimizedMatrixMul(m1, m2, &result, 2);
+
+
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("cacheopt MM time used: %f seconds\n",cpu_time_used);
+    prettyPrint(result);
 
     // cleanup allocated memory
     freeMatrix(&m1);
