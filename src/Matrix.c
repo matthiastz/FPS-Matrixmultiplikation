@@ -136,22 +136,29 @@ int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize) {
 
     /**
      *
-     * meh.................
+     * meh.................to slow
      *
      */
 
     int N = a.rowCount;
     int TILE = blockSize;
 
-    for ( int i=0; i<N; i+=TILE )
-        for ( int j=0; j<N; j+=TILE )
-            for ( int k=0; k<N; k+=TILE )
+    for (int i=0; i<N; i+=TILE) {
+        for (int j = 0; j < N; j += TILE) {
+            for (int k = 0; k < N; k += TILE) {
                 /* Regular multiply inside the tiles */
-                for ( int y=i; y<i+TILE; y++ )
-                    for ( int x=j; x<j+TILE; x++ )
-                        for ( int z=k; z<k+TILE; z++ )
-                            setElementValue(result,y,x, getElementValue(*result,y,x) + (getElementValue(a,y,z)*getElementValue(b,z,x)));
+                for (int y = i; y < i + TILE; y++) {
+                    for (int x = j; x < j + TILE; x++) {
 
+                        for (int z = k; z < k + TILE; z++) {
+                            setElementValue(result, y, x, getElementValue(*result, y, x) +
+                                                          (getElementValue(a, y, z) * getElementValue(b, z, x)));
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
