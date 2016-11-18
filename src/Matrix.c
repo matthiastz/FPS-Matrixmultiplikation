@@ -46,7 +46,7 @@ Matrix createRandomizedMatrix(int rowCount, int columnCount) {
 
     for (int i = 0; i < result.rowCount; ++i) {
         for (int j = 0; j < result.columnCount; ++j) {
-            value = rand() % 100;   // value in the range 0 to 99
+            value = rand() % 10;   // value in the range 0 to 9
             setElementValue(&result, i, j, value);
         }
     }
@@ -111,7 +111,7 @@ int standardMatrixMul(Matrix a, Matrix b, Matrix *result) {
 
             calc = 0.0;
             for (int k = 0; k < b.rowCount ; ++k) {
-                calc += getElementValue(a, i, j) * getElementValue(b,j, k);
+                calc += getElementValue(a, i, k) * getElementValue(b, k, j);
             }
             setElementValue(result, i, j, calc);
         }
@@ -140,60 +140,18 @@ int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize) {
      *
      */
 
-/*
-    int K, N, M;
-    K = a.rowCount;
-    M = K;
-    N = K;
-    int BS = blockSize;
+    int N = a.rowCount;
+    int TILE = blockSize;
 
-    for(int i=0; i<N; i++) {
-        for(int j=0; j<K; j++) {
-            result->data[K*i + j] = 0;
-        }
-    }
+    for ( int i=0; i<N; i+=TILE )
+        for ( int j=0; j<N; j+=TILE )
+            for ( int k=0; k<N; k+=TILE )
+                /* Regular multiply inside the tiles */
+                for ( int y=i; y<i+TILE; y++ )
+                    for ( int x=j; x<j+TILE; x++ )
+                        for ( int z=k; z<k+TILE; z++ )
+                            setElementValue(result,y,x, getElementValue(*result,y,x) + (getElementValue(a,y,z)*getElementValue(b,z,x)));
 
-
-    for(int l2=0; l2<M; l2+=BS) {
-        for(int j2=0; j2<K; j2+=BS) {
-            for(int i=0; i<N; i++) {
-                for(int l=l2; l<min(M, l2+BS); l++) {
-                    for(int j=j2; j<min(K, j2+BS); j++) {
-                        result->data[K*i + j] += a.data[M*i+l]*b.data[K*l+j];
-                    }
-                }
-            }
-        }
-    }
-
-    */
-
-    // tiled (parallel) matrix multiplication
-// from /sys/devices/system/cpu/cpu0/cache/index0
-// cat coherency_line_size returns 64;
-// thus I will use 64 as the blocking size;
-
-    int incr = blockSize;
-    int i,j,k,x,y,z;
-    int row = a.rowCount;
-    int col = a.columnCount;
-
-    for (i = 0; i < row; i += incr) {
-        for (j = 0; j < col; j += incr) {
-            result->data[i*col+j] = 0.0;
-            for (k = 0; k < row; k += incr) {
-                for (x = i; x < min( i + incr, row ); x++) {
-                    for (y = j; y < min( j + incr, col ); y++) {
-                        for (z = k; z < min( k + incr, row ); z++) {
-
-                            result->data[ x * col + y ] +=  a.data[ x * col + z ] * b.data[ z * col  + y  ];
-
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {

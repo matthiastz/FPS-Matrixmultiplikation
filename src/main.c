@@ -30,31 +30,32 @@ int main() {
     double cpu_time_used;
 
     Matrix m1, m2;
-    //m1 = createRandomizedMatrix(4, 4);
-    //m2 = createRandomizedMatrix(4, 4);
+    m1 = createRandomizedMatrix(8, 8);
+    m2 = createRandomizedMatrix(8, 8);
 
+    /*
     m1.rowCount = 2;
     m1.columnCount = 2;
-    m1.data = malloc(4* sizeof (float));
-    setElementValue(&m1, 0, 0, 1);
-    setElementValue(&m1, 0, 1, 2);
-    setElementValue(&m1, 1, 0, 3);
-    setElementValue(&m1, 1, 1, 4);
+    m1.data = malloc(4* sizeof(float));
+    setElementValue(&m1, 0, 0, 133);
+    setElementValue(&m1, 0, 1, 233);
+    setElementValue(&m1, 1, 0, 333);
+    setElementValue(&m1, 1, 1, 2);
 
     m2.rowCount = 2;
     m2.columnCount = 2;
-    m2.data = malloc(4* sizeof (float));
-    setElementValue(&m2, 0, 0, 1);
-    setElementValue(&m2, 0, 1, 2);
-    setElementValue(&m2, 1, 0, 3);
-    setElementValue(&m2, 1, 1, 4);
+    m2.data = malloc(4* sizeof(float));
+    setElementValue(&m2, 0, 0, 13);
+    setElementValue(&m2, 0, 1, 23);
+    setElementValue(&m2, 1, 0, 33);
+    setElementValue(&m2, 1, 1, 23);
+     */
 
 
     Matrix result = allocMatrix(m1, m2);
 
 
     //===== standard multiplication ==================
-
     start = clock();
     // do the work
     standardMatrixMul(m1, m2, &result);
@@ -72,11 +73,16 @@ int main() {
     // TODO: idea: we could use blocked style to save / access matrices, maybe performance boost from that?
     // TODO: implement blocked struct Matrix_Blocked
 
+    // TODO: source out
+    for (int i = 0; i < m1.rowCount; ++i) {
+        for (int j = 0; j < m1.rowCount; ++j) {
+            setElementValue(&result, i, j, 0.0);
+        }
+    }
 
     start = clock();
     // do the work
-
-    optimizedMatrixMul(m1, m2, &result, 2);
+    optimizedMatrixMul(m1, m2, &result,2);
 
 
     end = clock();
