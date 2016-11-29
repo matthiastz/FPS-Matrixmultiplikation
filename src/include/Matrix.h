@@ -43,6 +43,12 @@ Matrix allocMatrix(Matrix a, Matrix b);
 Matrix createRandomizedMatrix(int rowCount, int columnCount);
 
 /**
+ *
+ * @param a the matrix ready to init.
+ */
+void initMatrixWithZeros(Matrix a);
+
+/**
  * Frees up the space of the matrix data.
  */
 int freeMatrix(Matrix *matrix);
@@ -76,6 +82,16 @@ float getElementValue(Matrix matrix, int i, int j);
  * @param value the value to set
  */
 void setElementValue(Matrix *matrix, int i, int j, float value);
+
+/**
+ * Adds a value to the current value of a matrix element.
+ *
+ * @param matrix the matrix instance (dimension M × N)
+ * @param i the row number (must be in the interval 0..M–1)
+ * @param j the column number (must be in the interval 0..N–1)
+ * @param value the value to set
+ */
+void addToElemValue(Matrix *matrix, int i, int j, float value);
 
 /**
  * Prints a representation of the matrix to stdout.

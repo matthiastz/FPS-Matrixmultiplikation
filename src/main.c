@@ -30,8 +30,8 @@ int main() {
     double cpu_time_used;
 
     Matrix m1, m2;
-    m1 = createRandomizedMatrix(8, 8);
-    m2 = createRandomizedMatrix(8, 8);
+    m1 = createRandomizedMatrix(1024, 1024);
+    m2 = createRandomizedMatrix(1024, 1024);
 
     /*
     m1.rowCount = 2;
@@ -62,9 +62,9 @@ int main() {
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("std MM time used: %f seconds\n",cpu_time_used);
-    prettyPrint(result);
+//    prettyPrint(result);
 
-    printf("\n--------------------------------\n");
+    printf("--------------------------------\n");
 
     //===== cache optimized multiplication ==================
     // TODO: wrong calculation !!!
@@ -73,22 +73,17 @@ int main() {
     // TODO: idea: we could use blocked style to save / access matrices, maybe performance boost from that?
     // TODO: implement blocked struct Matrix_Blocked
 
-    // TODO: source out
-    for (int i = 0; i < m1.rowCount; ++i) {
-        for (int j = 0; j < m1.rowCount; ++j) {
-            setElementValue(&result, i, j, 0.0);
-        }
-    }
+    initMatrixWithZeros(result);
 
     start = clock();
     // do the work
-    optimizedMatrixMul(m1, m2, &result,2);
+    optimizedMatrixMul(m1, m2, &result, 16);
 
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("cacheopt MM time used: %f seconds\n",cpu_time_used);
-    prettyPrint(result);
+//    prettyPrint(result);
 
     // cleanup allocated memory
     freeMatrix(&m1);

@@ -53,6 +53,15 @@ Matrix createRandomizedMatrix(int rowCount, int columnCount) {
     return result;
 }
 
+void initMatrixWithZeros(Matrix a) {
+    for (int i = 0; i < a.rowCount; ++i) {
+        for (int j = 0; j < a.rowCount; ++j) {
+            setElementValue(&a, i, j, 0.0);
+        }
+    }
+}
+
+
 int freeMatrix(Matrix *matrix) {
     free(matrix->data);
     matrix->data = NULL;
@@ -82,6 +91,11 @@ void setElementValue(Matrix *matrix, int i, int j, float value) {
 
 }
 
+void addToElemValue(Matrix *matrix, int i, int j, float value) {
+    int index1D = (matrix->columnCount * i) + j;
+    matrix->data[index1D] += value;
+}
+
 int prettyPrint(Matrix matrix) {
 
     for (int i = 0; i < matrix.rowCount; ++i) {
@@ -90,7 +104,6 @@ int prettyPrint(Matrix matrix) {
         }
         printf("\n");
     }
-
 }
 
 /*************************
@@ -146,13 +159,16 @@ int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize) {
     for (int i=0; i<N; i+=TILE) {
         for (int j = 0; j < N; j += TILE) {
             for (int k = 0; k < N; k += TILE) {
+
                 /* Regular multiply inside the tiles */
                 for (int y = i; y < i + TILE; y++) {
                     for (int x = j; x < j + TILE; x++) {
 
+
                         for (int z = k; z < k + TILE; z++) {
-                            setElementValue(result, y, x, getElementValue(*result, y, x) +
-                                                          (getElementValue(a, y, z) * getElementValue(b, z, x)));
+                            addToElemValue(result, y, x, (getElementValue(a, y, z) * getElementValue(b, z, x)));
+//                            setElementValue(result, y, x, getElementValue(*result, y, x) +
+//                                                          (getElementValue(a, y, z) * getElementValue(b, z, x)));
                         }
                     }
                 }
