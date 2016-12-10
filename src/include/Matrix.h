@@ -5,15 +5,13 @@
 #ifndef FPS_MATRIXMULTIPLIKATION_MATRIX_H
 #define FPS_MATRIXMULTIPLIKATION_MATRIX_H
 
+#define COMPARE_EPSILON 0.000001
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
-
-
-/**
- * const matrix ????? ausgangsmatrix
- *
- */
-
+#include <math.h>
+#include <float.h>
 
 /**
  * Represents a matrix.
@@ -28,9 +26,9 @@ typedef struct Matrix {
     float *data;
 } Matrix;
 
-/*****************************
- * Access and help functions *
- *****************************/
+// =======================================================================
+// = ACCESS AND HELP FUNCTIONS
+// =======================================================================
 
 /**
  * Allocates space for the result of a matrix multiplication.
@@ -98,9 +96,29 @@ void addToElemValue(Matrix *matrix, int i, int j, float value);
  */
 int prettyPrint(Matrix matrix);
 
-/*************************
- * Matrix multiplication *
- *************************/
+/**
+ * compare the given matrices to make sure calculations are correct
+ *
+ * @param stdAlgorithm result matrix from standard algorithm
+ * @param a other matrix to compare with
+ * @return true / false if matrix elements are the same or not
+ */
+bool compareResultMatrices(Matrix stdAlgorithm, Matrix a);
+
+/**
+ * "compare" two float values with a given epsilon
+ * found at: floating-point-gui.de/errors/comparison/
+ *
+ * @param a
+ * @param b
+ * @param epsilon
+ * @return
+ */
+bool nearlyEqual(float a, float b, float epsilon);
+
+// =======================================================================
+// = MATRIX MULTIPLICATION
+// =======================================================================
 
 /**
  * Naive implementation of a matrix multiplication
@@ -110,7 +128,13 @@ int standardMatrixMul(Matrix a, Matrix b, Matrix *result);
 /**
  * Cache optimized implemetation of a matrix multiplication (n x n)
  */
-int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize);
+int optimizedMatrixMul_old(Matrix a, Matrix b, Matrix *result, int blockSize);
+
+/**
+ * wikipedia: make the execution of loops more efficient, by increasing the locality of reference
+ */
+int optimizedMatrixMul_DirectAccess(Matrix a, Matrix b, Matrix *result, int blockSize);
+
 
 /**
  * Parallel implementation of a matrix multiplication

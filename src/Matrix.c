@@ -4,8 +4,7 @@
 
 #include "include/Matrix.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+
 
 
 /*****************************
@@ -98,13 +97,56 @@ void addToElemValue(Matrix *matrix, int i, int j, float value) {
 
 int prettyPrint(Matrix matrix) {
 
+    // if matrix is really big don't print it
+    if (matrix.columnCount > 10 || matrix.rowCount > 10) {
+        return 0;
+    }
+
     for (int i = 0; i < matrix.rowCount; ++i) {
         for (int j = 0; j < matrix.columnCount ; ++j) {
             printf("%.1f  ", getElementValue(matrix, i, j));
         }
         printf("\n");
     }
+    return 0;
 }
+
+bool compareResultMatrices(Matrix stdAlgorithm, Matrix a) {
+
+    for (int i = 0; i < stdAlgorithm.rowCount ; ++i) {
+        for (int j = 0; j < a.columnCount ; ++j) {
+
+            // element found where values are different
+
+            if (!(nearlyEqual(getElementValue(stdAlgorithm, i, j),
+                            getElementValue(a, i, j), COMPARE_EPSILON))) {
+                printf("false! : %f -- %f\n",getElementValue(stdAlgorithm, i, j),
+                       getElementValue(a, i, j));
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool nearlyEqual(float a, float b, float epsilon) {
+
+    // TODO: use static float variables?
+    float absA = fabsf(a);
+    float absB = fabsf(b);
+    float diff = fabsf(a - b);
+
+    if (a == b) { // handles infinities
+        return true;
+    } else if (a == 0 || b == 0 || diff < FLT_EPSILON) {
+        // a or b is zero or both are extremely close to it
+        // relative error is less meaningful here
+        return diff < (epsilon * FLT_EPSILON);
+    } else { // use relative error
+        return diff / fminf((absA + absB), FLT_MAX) < epsilon;
+    }
+}
+
 
 /*************************
  * Matrix multiplication *
@@ -131,20 +173,7 @@ int standardMatrixMul(Matrix a, Matrix b, Matrix *result) {
     }
 }
 
-int min(int a, int b) {
-    return a > b ? a : b;
-}
-
-/**
- * wikipedia: make the execution of loops more efficient, by increasing the locality of reference
- *
- * @param a
- * @param b
- * @param result
- * @param blockSize
- * @return
- */
-int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize) {
+int optimizedMatrixMul_old(Matrix a, Matrix b, Matrix *result, int blockSize) {
     // TODO: fehler/trivial behandlung blocksize variable
 
     /**
@@ -175,8 +204,39 @@ int optimizedMatrixMul(Matrix a, Matrix b, Matrix *result, int blockSize) {
             }
         }
     }
+    // TODO:
+    return 0;
+}
+
+int optimizedMatrixMul_DirectAccess(Matrix a, Matrix b, Matrix *result, int blockSize) {
+    // TODO: fehler/trivial behandlung blocksize variable
+
+    int N = a.rowCount;
+    int TILE = blockSize;
+
+    for (int i=0; i<N; i+=TILE) {
+        for (int j = 0; j < N; j += TILE) {
+            for (int k = 0; k < N; k += TILE) {
+
+                /* Regular multiply inside the tiles */
+                for (int y = i; y < i + TILE; y++) {
+                    for (int x = j; x < j + TILE; x++) {
+
+
+                        for (int z = k; z < k + TILE; z++) {
+                            result->data[(N * y) + x] +=
+                                    a.data[(N * y) + z] * b.data[(N * z) + x];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // TODO:
+    return 0;
 }
 
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
-
+// TODO:
+    return 0;
 }

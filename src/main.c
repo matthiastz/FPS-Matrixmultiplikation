@@ -29,61 +29,65 @@ int main() {
     clock_t start, end;
     double cpu_time_used;
 
-    Matrix m1, m2;
-    m1 = createRandomizedMatrix(1024, 1024);
-    m2 = createRandomizedMatrix(1024, 1024);
+    // TODO: 2er Potenzen meint benedikt (512, 1024, 2048) -> #define?
+    // TODO: auch kleine matrix größen betrachten! -> bezug L1-, L2-cache
 
-    /*
-    m1.rowCount = 2;
-    m1.columnCount = 2;
-    m1.data = malloc(4* sizeof(float));
-    setElementValue(&m1, 0, 0, 133);
-    setElementValue(&m1, 0, 1, 233);
-    setElementValue(&m1, 1, 0, 333);
-    setElementValue(&m1, 1, 1, 2);
-
-    m2.rowCount = 2;
-    m2.columnCount = 2;
-    m2.data = malloc(4* sizeof(float));
-    setElementValue(&m2, 0, 0, 13);
-    setElementValue(&m2, 0, 1, 23);
-    setElementValue(&m2, 1, 0, 33);
-    setElementValue(&m2, 1, 1, 23);
-     */
-
-
+    Matrix m1 = createRandomizedMatrix(4, 4);
+    Matrix m2 = createRandomizedMatrix(4, 4);
     Matrix result = allocMatrix(m1, m2);
 
 
-    //===== standard multiplication ==================
+    // ==================================================================
+    // ===== standard algorithm multiplication ==========================
+    // ==================================================================
+
     start = clock();
     // do the work
     standardMatrixMul(m1, m2, &result);
+    Matrix stdAlgorithmResult = result;
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("std MM time used: %f seconds\n",cpu_time_used);
-//    prettyPrint(result);
-
+    prettyPrint(result);
     printf("--------------------------------\n");
 
-    //===== cache optimized multiplication ==================
-    // TODO: wrong calculation !!!
+    // ==================================================================
+    // ===== cache optimized multiplication 1 ===========================
+    // ==================================================================
 
-    // TODO: result -> to slow...
-    // TODO: idea: we could use blocked style to save / access matrices, maybe performance boost from that?
-    // TODO: implement blocked struct Matrix_Blocked
+    // TODO: implementierung robuster -> siehe OpenTuner framework
+    // TODO: um nicht nur log(2)-Größen sondern alle zu unterstützen
 
-    initMatrixWithZeros(result);
+    Matrix resultCache1 = allocMatrix(m1, m2);
+    initMatrixWithZeros(resultCache1);
 
     start = clock();
     // do the work
-    optimizedMatrixMul(m1, m2, &result, 16);
-
+    optimizedMatrixMul_old(m1, m2, &resultCache1, 2);
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("cacheopt MM time used: %f seconds\n",cpu_time_used);
-//    prettyPrint(result);
+    prettyPrint(resultCache1);
+    printf("calculation correct? : %s\n",
+           compareResultMatrices(stdAlgorithmResult, resultCache1) ? "true" : "false");
+    printf("--------------------------------\n");
+
+    // ==================================================================
+    // ===== cache optimized multiplication 2 ===========================
+    // ==================================================================
+    Matrix resultCache2 = allocMatrix(m1, m2);
+    initMatrixWithZeros(resultCache2);
+    start = clock();
+    // do the work
+    optimizedMatrixMul_DirectAccess(m1, m2, &resultCache2, 2);
+
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("cacheopt MM 2 (direct array access) time used: %f seconds\n",cpu_time_used);
+    prettyPrint(resultCache2);
+    printf("calculation correct? : %s\n",
+           compareResultMatrices(stdAlgorithmResult, resultCache2) ? "true" : "false");
 
     // cleanup allocated memory
     freeMatrix(&m1);
@@ -93,9 +97,6 @@ int main() {
     // TODO: diagram matrix größe - ausführungszeit
     // diagramm blocksize by cache optimierung
     // mehrfach ausführen, durchschnitt
-
-    // TODO: 2er Potenzen meint benedikt (512, 1024, 2048) -> #define?
-    // iwie davon überzeugen, dass multiplikation korrekt war (std. algo -> == "überladung")
 
     return 0;
 }
