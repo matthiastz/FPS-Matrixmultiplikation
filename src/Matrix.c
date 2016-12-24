@@ -120,6 +120,7 @@ bool compareResultMatrices(Matrix stdAlgorithm, Matrix a) {
 
             if (!(nearlyEqual(getElementValue(stdAlgorithm, i, j),
                             getElementValue(a, i, j), COMPARE_EPSILON))) {
+                // TODO: remove printf line
                 printf("false! : %f -- %f\n",getElementValue(stdAlgorithm, i, j),
                        getElementValue(a, i, j));
                 return false;
@@ -193,11 +194,8 @@ int optimizedMatrixMul_old(Matrix a, Matrix b, Matrix *result, int blockSize) {
                 for (int y = i; y < i + TILE; y++) {
                     for (int x = j; x < j + TILE; x++) {
 
-
                         for (int z = k; z < k + TILE; z++) {
                             addToElemValue(result, y, x, (getElementValue(a, y, z) * getElementValue(b, z, x)));
-//                            setElementValue(result, y, x, getElementValue(*result, y, x) +
-//                                                          (getElementValue(a, y, z) * getElementValue(b, z, x)));
                         }
                     }
                 }
@@ -237,6 +235,65 @@ int optimizedMatrixMul_DirectAccess(Matrix a, Matrix b, Matrix *result, int bloc
 }
 
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
-// TODO:
+
+    if (!(isSquareMatrix(a) && isSquareMatrix(b))) {
+        printf("avx impl.: matrix a & b have to be square (N x N)\n");
+        return -1;
+    } else if (a.rowCount != b.rowCount) {
+        printf("matrix a & b have different dimensions\n");
+        return -1;
+    } else if (a.rowCount % AVX_VECTOR_SIZE != 0) {
+        printf("matrix dimension mod %d has to be 0\n", AVX_VECTOR_SIZE);
+        return -1;
+    }
+
+    int N = a.rowCount;
+    int vector_count = N / AVX_VECTOR_SIZE;
+    __m256 vA, vB, vC;
+    float calc = 0.0;
+
+    for (int i = 0; i < N ; ++i) {
+        for (int j = 0; j < N ; ++j) {
+
+            // TODO: l-loop isn't REALLY necessary
+
+            // dim/vector_size x vector_size parallel multiplication
+            for (int l = 0; l < vector_count; l++) {
+
+                vA = _mm256_setr_ps(
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 0)],
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 1)],
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 2)],
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 3)],
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 4)],
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 5)],
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 6)],
+                        a.data[N * i + (l*AVX_VECTOR_SIZE + 7)]);
+
+                vB = _mm256_setr_ps(
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 0)) + j],
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 1)) + j],
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 2)) + j],
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 3)) + j],
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 4)) + j],
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 5)) + j],
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 6)) + j],
+                        b.data[(N * (l*AVX_VECTOR_SIZE + 7)) + j]);
+
+                // multiplication (8*8 vectors)
+                vC = _mm256_mul_ps(vA, vB);
+
+                // TODO: overhead !
+                float* f = (float*)&vC;
+                calc = 0.0;
+                for (int m = 0; m < AVX_VECTOR_SIZE ; ++m) {
+                    calc += f[m];
+                }
+            }
+            result->data[N * i + j] += calc;
+        }
+    }
+
+    // TODO:
     return 0;
 }

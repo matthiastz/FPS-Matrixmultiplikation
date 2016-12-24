@@ -6,12 +6,14 @@
 #define FPS_MATRIXMULTIPLIKATION_MATRIX_H
 
 #define COMPARE_EPSILON 0.000001
+#define AVX_VECTOR_SIZE 8
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
 #include <float.h>
+#include <immintrin.h>  // AVX header
 
 /**
  * Represents a matrix.
