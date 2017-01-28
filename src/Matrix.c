@@ -5,8 +5,6 @@
 #include "include/Matrix.h"
 
 
-
-
 /*****************************
  * Access and help functions *
  *****************************/
@@ -17,12 +15,12 @@ Matrix allocMatrix(Matrix a, Matrix b) {
     if (isSquareMatrix(a) && isSquareMatrix(b)) {
         result.rowCount = a.rowCount;
         result.columnCount = a.columnCount;
-        result.data = malloc(result.rowCount * result.columnCount * sizeof (float));
-
-    } else if (1) {
+        result.data = calloc(result.rowCount * result.columnCount, sizeof (result.data));
 
     } else {
-        // error
+        // TODO: error
+        printf("error: wrong dimensions!\n");
+
     }
     return result;
 }
@@ -35,7 +33,7 @@ Matrix allocMatrix(Matrix a, Matrix b) {
  * @param columnCount ouf our generated matrix
  * @return the created matrix
  */
-Matrix createRandomizedMatrix(int rowCount, int columnCount) {
+Matrix createRandomizedMatrix(unsigned int rowCount, unsigned int columnCount) {
     float value;
     Matrix result;
     // TODO: think we could need some testing here?
@@ -68,7 +66,18 @@ int freeMatrix(Matrix *matrix) {
 }
 
 bool isNullMatrix(Matrix matrix) {
+    for (int i = 0; i < matrix.rowCount; ++i) {
+        for (int j = 0; j < matrix.columnCount; ++j) {
 
+            // TODO: redundant
+
+            if (!(nearlyEqual(matrix.data[(matrix.columnCount * i) + j],
+                0.0f, COMPARE_EPSILON))) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 bool isSquareMatrix(Matrix matrix) {
@@ -172,6 +181,8 @@ int standardMatrixMul(Matrix a, Matrix b, Matrix *result) {
             setElementValue(result, i, j, calc);
         }
     }
+    // TODO:
+    return 0;
 }
 
 int optimizedMatrixMul_old(Matrix a, Matrix b, Matrix *result, int blockSize) {
@@ -248,47 +259,60 @@ int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
     }
 
     int N = a.rowCount;
-    int vector_count = N / AVX_VECTOR_SIZE;
+    int multiplication_count = N / AVX_VECTOR_SIZE;
     __m256 vA, vB, vC;
-    float calc = 0.0;
+    float calc;
+    float* f;
+
 
     for (int i = 0; i < N ; ++i) {
+        int Ni = N * i;
+
         for (int j = 0; j < N ; ++j) {
 
-            // TODO: l-loop isn't REALLY necessary
+            // reset calc for next loop of multiplication
+            calc = 0.0;
 
-            // dim/vector_size x vector_size parallel multiplication
-            for (int l = 0; l < vector_count; l++) {
+            // dim/vector_size-times vector_size parallel multiplication
+            for (int l = 0; l < multiplication_count; l++) {
 
+                int lAvx = l*AVX_VECTOR_SIZE;
+                int Ni_plus_Avx = Ni + lAvx;
+
+//                float* unaligned_floats = (float*)malloc(64 * sizeof(float));
+//                __m256 vec = _mm256_loadu_ps(unaligned_floats);
+
+
+                // TODO: set steps are overhead !
                 vA = _mm256_setr_ps(
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 0)],
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 1)],
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 2)],
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 3)],
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 4)],
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 5)],
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 6)],
-                        a.data[N * i + (l*AVX_VECTOR_SIZE + 7)]);
+                        a.data[Ni_plus_Avx + 0],
+                        a.data[Ni_plus_Avx + 1],
+                        a.data[Ni_plus_Avx + 2],
+                        a.data[Ni_plus_Avx + 3],
+                        a.data[Ni_plus_Avx + 4],
+                        a.data[Ni_plus_Avx + 5],
+                        a.data[Ni_plus_Avx + 6],
+                        a.data[Ni_plus_Avx + 7]);
 
                 vB = _mm256_setr_ps(
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 0)) + j],
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 1)) + j],
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 2)) + j],
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 3)) + j],
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 4)) + j],
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 5)) + j],
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 6)) + j],
-                        b.data[(N * (l*AVX_VECTOR_SIZE + 7)) + j]);
+                        b.data[(N * (lAvx + 0)) + j],
+                        b.data[(N * (lAvx + 1)) + j],
+                        b.data[(N * (lAvx + 2)) + j],
+                        b.data[(N * (lAvx + 3)) + j],
+                        b.data[(N * (lAvx + 4)) + j],
+                        b.data[(N * (lAvx + 5)) + j],
+                        b.data[(N * (lAvx + 6)) + j],
+                        b.data[(N * (lAvx + 7)) + j]);
 
                 // multiplication (8*8 vectors)
                 vC = _mm256_mul_ps(vA, vB);
 
                 // TODO: overhead !
-                float* f = (float*)&vC;
-                calc = 0.0;
+                f = (float*)&vC;
                 for (int m = 0; m < AVX_VECTOR_SIZE ; ++m) {
                     calc += f[m];
                 }
+
             }
             result->data[N * i + j] += calc;
         }

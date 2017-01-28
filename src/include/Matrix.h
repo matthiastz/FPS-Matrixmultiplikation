@@ -1,5 +1,5 @@
 //
-// thanks to benediktg for creating this interface :-)
+// thanks to @benediktg for creating this interface :-)
 //
 
 #ifndef FPS_MATRIXMULTIPLIKATION_MATRIX_H
@@ -20,12 +20,13 @@
  */
 typedef struct Matrix {
     /** count of rows */
-    int rowCount;
+    unsigned int rowCount;
     /** count of columns */
-    int columnCount;
+    unsigned int columnCount;
     /** the actual matrix which is supposed to have a size of
      * count of rows times columns */
     float *data;
+
 } Matrix;
 
 // =======================================================================
@@ -40,7 +41,7 @@ Matrix allocMatrix(Matrix a, Matrix b);
 /**
  * creates a matrix with given dimension (rows, columns)
  */
-Matrix createRandomizedMatrix(int rowCount, int columnCount);
+Matrix createRandomizedMatrix(unsigned int rowCount, unsigned int columnCount);
 
 /**
  *
