@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -std=c99 -lm -mavx
+CFLAGS = -Wall -std=c99 -lm -mavx -O2
 LFLAGS = -lcblas
 SRCDIR = src
 INCLUDEDIR = src/include

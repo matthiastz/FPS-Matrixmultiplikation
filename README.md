@@ -11,3 +11,11 @@ Forschungspraktikum Parallele und Verteilte Systeme - TU Chemnitz
 
 # Kompilieren
     make -j4  # -j4 ist optional, ggf. noch -B, um garantiert zu rekompilieren
+
+# Quellen
+[Intel Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide)
+[AVX Intro](https://www.codeproject.com/articles/874396/crunching-numbers-with-avx-and-avx)
+
+
+
+

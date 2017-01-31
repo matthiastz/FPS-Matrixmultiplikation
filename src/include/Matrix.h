@@ -36,7 +36,7 @@ typedef struct Matrix {
 /**
  * Allocates space for the result of a matrix multiplication.
  */
-Matrix allocMatrix(Matrix a, Matrix b);
+Matrix callocMatrix(Matrix a, Matrix b);
 
 /**
  * creates a matrix with given dimension (rows, columns)
@@ -52,7 +52,7 @@ void initMatrixWithZeros(Matrix a);
 /**
  * Frees up the space of the matrix data.
  */
-int freeMatrix(Matrix *matrix);
+int freeMatrix(Matrix* matrix);
 
 /**
  * Checks if the matrix is similar to a null object.
@@ -98,6 +98,8 @@ void addToElemValue(Matrix *matrix, int i, int j, float value);
  * Prints a representation of the matrix to stdout.
  */
 int prettyPrint(Matrix matrix);
+int prettyPrint_16(Matrix matrix);
+
 
 /**
  * compare the given matrices to make sure calculations are correct
@@ -143,5 +145,8 @@ int optimizedMatrixMul_DirectAccess(Matrix a, Matrix b, Matrix *result, int bloc
  * Parallel implementation of a matrix multiplication
  */
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result);
+
+
+int parallelMatrixMul_AVX(Matrix a, Matrix b, Matrix *result);
 
 #endif //FPS_MATRIXMULTIPLIKATION_MATRIX_H

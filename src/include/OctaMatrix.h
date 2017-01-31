@@ -6,48 +6,34 @@
 #define FPS_MATRIXMULTIPLIKATION_OCTAMATRIX_H
 
 #include "Matrix.h"
+#include <math.h>
 
 /**
  * Represents a matrix containing arrays with 8 floats each.
  */
 typedef struct OctaMatrix {
-    /** count of rows */
-    int rowCount;
-    /** count of columns */
-    int columnCount;
-    /** the actual matrix which is supposed to have a size of
-     * count of rows times columns */
-    float*** data;  // each element in that matrix is a array of 8 floats
+    unsigned int sections_count;
+    float** data;
 } OctaMatrix;
 
 // TODO: change data structure of matrix to packed float arrays of 8 elements
 // TODO: so we can load 8 elements in 1 "rutsch"
 //                unaligned_floats = a.data[Ni_plus_Avx];
 
-// old matrix:
-//                1 1 1
-//                2 2 2
-//                .....
-//                8 8 8
-//                .....
-//                ....
-
-// new matrix:
-//                [1        [1      [1
-// ...      ...     ...
-// 8]       8]      8]
-//                ...
-//                ...
 
 /**
  * Allocates space for the result of a matrix multiplication.
  */
-OctaMatrix allocOctaMatrix(Matrix a, Matrix b);
+OctaMatrix callocOctaMatrix(Matrix a, Matrix b);
 
 /**
  * creates a matrix with given dimension (rows, columns)
+ *
+ * @param a
+ * @param order
+ * @return
  */
-OctaMatrix createOctaMatrix(Matrix a);
+OctaMatrix createOctaMatrix(Matrix a, bool order);
 
 /**
  *
@@ -56,7 +42,20 @@ OctaMatrix createOctaMatrix(Matrix a);
  * @param result
  * @return error
  */
-int multOct(OctaMatrix a, OctaMatrix b, OctaMatrix *result);
+int multOct(OctaMatrix a, OctaMatrix b, Matrix *result);
+
+/**
+ *
+ * @param a
+ */
+void printOctaMatrix(OctaMatrix a);
+
+/**
+ *
+ * @param a
+ * @return
+ */
+int freeOctMatrix(OctaMatrix* a);
 
 
 #endif //FPS_MATRIXMULTIPLIKATION_OCTAMATRIX_H

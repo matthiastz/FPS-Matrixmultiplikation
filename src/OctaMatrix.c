@@ -4,25 +4,14 @@
 
 #include "include/OctaMatrix.h"
 
-// TODO: remove that data type ???
-
-OctaMatrix createOctaMatrix(Matrix a) {
+OctaMatrix createOctaMatrix(Matrix a, bool order) {
     OctaMatrix result;
-    result.rowCount = a.rowCount / AVX_VECTOR_SIZE;
-    result.columnCount = a.columnCount;
+    result.sections_count = (a.rowCount * a.columnCount) / AVX_VECTOR_SIZE;
 
-    int ROW = result.rowCount;
-    int COL = result.columnCount;
-    int N = COL;
-
-    // alloc mem
-    result.data = malloc(COL * sizeof(float**));
-    for (int l = 0; l < COL; ++l) {
-        result.data[l] = malloc(ROW * sizeof(float*));
-
-        for (int m = 0; m < ROW; ++m) {
-            result.data[m][l] = malloc(AVX_VECTOR_SIZE * sizeof(float));
-        }
+    // alloc mem (section_count * array[8])
+    result.data = malloc(result.sections_count * sizeof(float*));
+    for (int l = 0; l < result.sections_count; ++l) {
+        result.data[l] = malloc(AVX_VECTOR_SIZE * sizeof(float));
     }
 
     // errors
@@ -36,77 +25,127 @@ OctaMatrix createOctaMatrix(Matrix a) {
         return result;
     }
 
+    // bool: row-major, col-major
+
     // put values
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < a.rowCount; ++i) {
+        for (int j = 0; j < a.columnCount; ++j) {
+            float temp;
+//            = getElementValue(a, i, j);
 
-        for (int j = 0; j < result.rowCount; ++j) {
+//            if (order) {
+//                result.data[i][j] = temp;
+//            } else {
+//                result.data[j][i] = temp;
+//            }
 
-//            float* temp = malloc(AVX_VECTOR_SIZE * sizeof(float));
-            float temp[AVX_VECTOR_SIZE];
-            for (int k = 0; k < AVX_VECTOR_SIZE; ++k) {
-                temp[k] = a.data[(N * j) + (i * AVX_VECTOR_SIZE + k)];
+            if (order) {
+                temp = getElementValue(a, j, i);
+            } else {
+                temp = getElementValue(a, i, j);
             }
-            result.data[j][i] = temp;
+            result.data[i][j] = temp;
         }
     }
     return result;
 }
 
-OctaMatrix allocOctaMatrix(Matrix a, Matrix b) {
+// TODO: write multiplication function in this file !!!!!!!!!!!!!
+
+void printOctaMatrix(OctaMatrix a) {
+
+    for (int l = 0; l < a.sections_count; ++l) {
+        for (int i = 0; i < AVX_VECTOR_SIZE ; ++i) {
+            printf("%.1f  ", a.data[l][i]);
+        }
+        printf("\n");
+    }
+}
+
+
+OctaMatrix callocOctaMatrix(Matrix a, Matrix b) {
     OctaMatrix result;
+    result.sections_count = (a.rowCount * a.columnCount) / AVX_VECTOR_SIZE;
+
+    // alloc mem (section_count * array[8])
+    result.data = malloc(result.sections_count * sizeof(float*));
+    for (int l = 0; l < result.sections_count; ++l) {
+        result.data[l] = calloc(AVX_VECTOR_SIZE, sizeof(float));
+    }
 
     if (!isSquareMatrix(a) || !isSquareMatrix(b)) {
         printf("matrix a or matrix b is NOT a square matrix!\n");
         return result;
     }
-
-    int N = a.rowCount;
-
-    result.rowCount = a.rowCount / AVX_VECTOR_SIZE;
-    result.columnCount = a.columnCount;
-    int ROW = result.rowCount;
-    int COL = result.columnCount;
-
-    // alloc mem
-    result.data = calloc(COL,  sizeof(float**));
-    for (int l = 0; l < COL; ++l) {
-        result.data[l] = calloc(ROW, sizeof(float*));
-
-        for (int m = 0; m < ROW; ++m) {
-            result.data[m][l] = calloc(AVX_VECTOR_SIZE, sizeof(float));
-        }
-    }
-
-    // put values
-    for (int i = 0; i < N; ++i) {
-
-        for (int j = 0; j < result.rowCount; ++j) {
-
-//            float* temp = malloc(AVX_VECTOR_SIZE * sizeof(float));
-            float temp[AVX_VECTOR_SIZE];
-            for (int k = 0; k < AVX_VECTOR_SIZE; ++k) {
-                temp[k] = 0;
-            }
-            result.data[j][i] = temp;
-        }
-    }
     return result;
 }
 
-int multOct(OctaMatrix a, OctaMatrix b, OctaMatrix *result) {
-    int N = a.rowCount;
+int freeOctMatrix(OctaMatrix* a) {
+    int N = a->sections_count;
+
+    // alloc mem (section_count * array[8])
+    for (int i = 0; i < N; ++i) {
+        free(a->data[i]);
+        a->data[i] = NULL;
+    }
+    free(a->data);
+    a->data = NULL;
+
+    // TODO:
+    return 0;
+}
+
+
+int multOct(OctaMatrix a, OctaMatrix b, Matrix *result) {
+
+    // TODO: meh…
+    int N = (int) sqrt(a.sections_count * AVX_VECTOR_SIZE);
+    int vec_mm_count = N / AVX_VECTOR_SIZE;
+    float calc;
+    float* f;
     __m256 vec_A, vec_B, vec_C;
 
+    if (a.sections_count != b.sections_count) {
+        printf("OctaMatrix a and b have different section counts!\n");
+        return -1;
+    }
+
+    /* calculation */
     for (int i = 0; i < N; ++i) {
 
-        for (int j = 0; j < result->rowCount; ++j) {
+        calc = 0.0;
+        for (int j = 0; j < N; ++j) {
 
-            vec_A = _mm256_load_ps(a.data[i][j]);
-            vec_B = _mm256_load_ps(b.data[i][j]);
-            vec_C = _mm256_mul_ps(vec_A, vec_B);
+            for (int k = 0; k < vec_mm_count; ++k) {
 
-            float* f = (float*)&vec_C;
-            result->data[i][j] = f;
+//                calc += getElementValue(a, i, k) * getElementValue(b, k, j);
+
+                vec_A = _mm256_loadu_ps(a.data[i + k]);
+                vec_B = _mm256_loadu_ps(b.data[(N * k) + i]);
+
+                if (j==0){
+                    // debug:
+                    float* fa = (float*)&vec_A;
+                    float* fb = (float*)&vec_B;
+                    for (int m = 0; m < AVX_VECTOR_SIZE ; ++m) {
+                        printf("a: %.2f ", fa[m]);
+                    }
+                    printf("\n");
+                    for (int m = 0; m < AVX_VECTOR_SIZE ; ++m) {
+                        printf("b: %.2f ", fb[m]);
+                    }
+                    printf("\n");
+                }
+
+                vec_C = _mm256_mul_ps(vec_A, vec_B);
+
+                // TODO: overhead !
+                f = (float*)&vec_C;
+                for (int m = 0; m < AVX_VECTOR_SIZE ; ++m) {
+                    calc += f[m];
+                }
+            }
+            result->data[(N * i) + j] += calc;
         }
     }
 

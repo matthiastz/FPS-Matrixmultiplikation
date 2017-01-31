@@ -9,7 +9,7 @@
  * Access and help functions *
  *****************************/
 
-Matrix allocMatrix(Matrix a, Matrix b) {
+Matrix callocMatrix(Matrix a, Matrix b) {
     Matrix result;
 
     if (isSquareMatrix(a) && isSquareMatrix(b)) {
@@ -59,7 +59,7 @@ void initMatrixWithZeros(Matrix a) {
 }
 
 
-int freeMatrix(Matrix *matrix) {
+int freeMatrix(Matrix* matrix) {
     free(matrix->data);
     matrix->data = NULL;
     return 0;
@@ -108,6 +108,22 @@ int prettyPrint(Matrix matrix) {
 
     // if matrix is really big don't print it
     if (matrix.columnCount > 10 || matrix.rowCount > 10) {
+        return 0;
+    }
+
+    for (int i = 0; i < matrix.rowCount; ++i) {
+        for (int j = 0; j < matrix.columnCount ; ++j) {
+            printf("%.1f  ", getElementValue(matrix, i, j));
+        }
+        printf("\n");
+    }
+    return 0;
+}
+
+int prettyPrint_16(Matrix matrix) {
+
+    // if matrix is really big don't print it
+    if (matrix.columnCount > 16 || matrix.rowCount > 16) {
         return 0;
     }
 
@@ -265,10 +281,10 @@ int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
     float* f;
 
 
-    for (int i = 0; i < N ; ++i) {
+    for (int i = 0; i < N; ++i) {
         int Ni = N * i;
 
-        for (int j = 0; j < N ; ++j) {
+        for (int j = 0; j < N; ++j) {
 
             // reset calc for next loop of multiplication
             calc = 0.0;
@@ -276,7 +292,7 @@ int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
             // dim/vector_size-times vector_size parallel multiplication
             for (int l = 0; l < multiplication_count; l++) {
 
-                int lAvx = l*AVX_VECTOR_SIZE;
+                int lAvx = l * AVX_VECTOR_SIZE;
                 int Ni_plus_Avx = Ni + lAvx;
 
 //                float* unaligned_floats = (float*)malloc(64 * sizeof(float));
@@ -284,6 +300,7 @@ int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
 
 
                 // TODO: set steps are overhead !
+                // TODO: outsource to new data type.
                 vA = _mm256_setr_ps(
                         a.data[Ni_plus_Avx + 0],
                         a.data[Ni_plus_Avx + 1],
@@ -317,6 +334,72 @@ int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
             result->data[N * i + j] += calc;
         }
     }
+
+    // TODO:
+    return 0;
+}
+
+int parallelMatrixMul_AVX(Matrix a, Matrix b, Matrix *result) {
+
+    // TODO: test if dimension are correct …
+    // TODO: N % AVX_VECTOR_SIZE == 0
+
+    int N = a.rowCount;
+    int calculation_count = N / AVX_VECTOR_SIZE;
+
+
+    for (int i = 0; i < N; ++i) {
+
+        const int iN = (i * N);
+
+        // "rows" of matrix B separated in blocks
+        for (int j = 0; j < calculation_count; ++j) {
+
+            const int jAVX = j * AVX_VECTOR_SIZE;
+
+            for (int k = 0; k < N; ++k) {
+
+                // calculation:
+                // __m256 broad_A = _mm256_set1_ps(a.data[k + (i * N)]);
+                // __m256 vector_B = _mm256_load_ps(&b.data[j * AVX_VECTOR_SIZE + (k * N)]);
+                // __m256 temp = _mm256_mul_ps(broad_A, vector_B);
+                // result[] += (broad_A * vector_B)
+
+                // TODO: aufaddieren (+=) <-> OVERHEAD
+                _mm256_storeu_ps(&result->data[jAVX + iN],
+                             _mm256_add_ps(
+                                     _mm256_mul_ps(
+                                             _mm256_set1_ps(a.data[k + iN]),
+                                             _mm256_loadu_ps(&b.data[jAVX + (k * N)])),
+                                     _mm256_loadu_ps(&result->data[jAVX + iN])));
+            }
+        }
+    }
+
+
+
+//    __m256 row1 = _mm_load_ps(&B[0]);
+//    __m256 row2 = _mm_load_ps(&B[4]);
+//    __m256 row3 = _mm_load_ps(&B[8]);
+//    __m256 row4 = _mm_load_ps(&B[12]);
+//
+//    for(int i=0; i<4; i++) {
+//        __m128 brod1 = _mm_set1_ps(A[4*i + 0]);
+//        __m128 brod2 = _mm_set1_ps(A[4*i + 1]);
+//        __m128 brod3 = _mm_set1_ps(A[4*i + 2]);
+//        __m128 brod4 = _mm_set1_ps(A[4*i + 3]);
+//        __m128 row = _mm_add_ps(
+//                _mm_add_ps(
+//                        _mm_mul_ps(brod1, row1),
+//                        _mm_mul_ps(brod2, row2)),
+//                _mm_add_ps(
+//                        _mm_mul_ps(brod3, row3),
+//                        _mm_mul_ps(brod4, row4)));
+//        _mm_store_ps(&C[4*i], row);
+//    }
+
+
+
 
     // TODO:
     return 0;
