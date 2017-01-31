@@ -14,6 +14,7 @@ Forschungspraktikum Parallele und Verteilte Systeme - TU Chemnitz
 
 # Quellen
 [Intel Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide)
+
 [AVX Intro](https://www.codeproject.com/articles/874396/crunching-numbers-with-avx-and-avx)
 
 
