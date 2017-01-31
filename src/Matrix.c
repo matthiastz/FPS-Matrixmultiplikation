@@ -348,15 +348,19 @@ int parallelMatrixMul_AVX(Matrix a, Matrix b, Matrix *result) {
     int calculation_count = N / AVX_VECTOR_SIZE;
 
 
+    // (III.)
     for (int i = 0; i < N; ++i) {
 
-        const int iN = (i * N);
+        int iN = (i * N);
 
-        // "rows" of matrix B separated in blocks
+        // "rows" of matrix B separated in blocks (II.)
         for (int j = 0; j < calculation_count; ++j) {
 
-            const int jAVX = j * AVX_VECTOR_SIZE;
+            int jAVX = j * AVX_VECTOR_SIZE;
+            float* result_address = &result->data[iN + jAVX];
 
+
+            // (I.)
             for (int k = 0; k < N; ++k) {
 
                 // calculation:
@@ -366,40 +370,15 @@ int parallelMatrixMul_AVX(Matrix a, Matrix b, Matrix *result) {
                 // result[] += (broad_A * vector_B)
 
                 // TODO: aufaddieren (+=) <-> OVERHEAD
-                _mm256_storeu_ps(&result->data[jAVX + iN],
+                _mm256_storeu_ps(result_address,
                              _mm256_add_ps(
                                      _mm256_mul_ps(
                                              _mm256_set1_ps(a.data[k + iN]),
                                              _mm256_loadu_ps(&b.data[jAVX + (k * N)])),
-                                     _mm256_loadu_ps(&result->data[jAVX + iN])));
+                                     _mm256_loadu_ps(result_address)));
             }
         }
     }
-
-
-
-//    __m256 row1 = _mm_load_ps(&B[0]);
-//    __m256 row2 = _mm_load_ps(&B[4]);
-//    __m256 row3 = _mm_load_ps(&B[8]);
-//    __m256 row4 = _mm_load_ps(&B[12]);
-//
-//    for(int i=0; i<4; i++) {
-//        __m128 brod1 = _mm_set1_ps(A[4*i + 0]);
-//        __m128 brod2 = _mm_set1_ps(A[4*i + 1]);
-//        __m128 brod3 = _mm_set1_ps(A[4*i + 2]);
-//        __m128 brod4 = _mm_set1_ps(A[4*i + 3]);
-//        __m128 row = _mm_add_ps(
-//                _mm_add_ps(
-//                        _mm_mul_ps(brod1, row1),
-//                        _mm_mul_ps(brod2, row2)),
-//                _mm_add_ps(
-//                        _mm_mul_ps(brod3, row3),
-//                        _mm_mul_ps(brod4, row4)));
-//        _mm_store_ps(&C[4*i], row);
-//    }
-
-
-
 
     // TODO:
     return 0;

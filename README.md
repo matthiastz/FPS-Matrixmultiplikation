@@ -17,6 +17,8 @@ Forschungspraktikum Parallele und Verteilte Systeme - TU Chemnitz
 
 [AVX Intro](https://www.codeproject.com/articles/874396/crunching-numbers-with-avx-and-avx)
 
+[Efficient matrix multiplication](http://stackoverflow.com/questions/18499971/efficient-4x4-matrix-multiplication-c-vs-assembly)
+
 
 
 
