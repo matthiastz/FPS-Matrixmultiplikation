@@ -10,7 +10,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -lm -mavx")
 
 
 
-set(SOURCE_FILES src/main.c src/Matrix.c src/include/Matrix.h src/OctaMatrix.c src/include/OctaMatrix.h src/HelpFunctions.c src/include/HelpFunctions.h)
+set(SOURCE_FILES src/main.c src/Matrix.c src/include/Matrix.h src/HelpFunctions.c src/include/HelpFunctions.h)
 
 include_directories(src/include)
 

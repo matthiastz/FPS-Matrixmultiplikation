@@ -14,8 +14,9 @@
 
 
 void createResultFolder(char* folder_path, struct stat buf);
-void createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetitions,
+char* createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetitions,
                       double* overall_times, bool* calcs);
 char* createFileName(char* folder_path);
+void printHeader(int N, int REPETITIONS);
 
 #endif //FPS_MATRIXMULTIPLIKATION_HELPFUNCTIONS_H

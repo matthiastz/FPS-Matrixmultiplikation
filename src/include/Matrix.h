@@ -42,6 +42,7 @@ Matrix callocMatrix(Matrix a, Matrix b);
  * creates a matrix with given dimension (rows, columns)
  */
 Matrix createRandomizedMatrix(unsigned int rowCount, unsigned int columnCount);
+float* createRandomizedMatrix_f(int N);
 
 /**
  *
@@ -110,6 +111,9 @@ int prettyPrint_16(Matrix matrix);
  */
 bool compareResultMatrices(Matrix stdAlgorithm, Matrix a);
 
+bool compareResultMatrices_F(float* stdAlgorithm, float* a, int N);
+
+
 /**
  * "compare" two float values with a given epsilon
  * found at: floating-point-gui.de/errors/comparison/
@@ -129,16 +133,15 @@ bool nearlyEqual(float a, float b, float epsilon);
  * Naive implementation of a matrix multiplication
  */
 int standardMatrixMul(Matrix a, Matrix b, Matrix *result);
+int standardMatrixMul_f(float* a, float* b, float* result, int N);
 
-/**
- * Cache optimized implemetation of a matrix multiplication (n x n)
- */
-int optimizedMatrixMul_old(Matrix a, Matrix b, Matrix *result, int blockSize);
 
 /**
  * wikipedia: make the execution of loops more efficient, by increasing the locality of reference
  */
 int optimizedMatrixMul_DirectAccess(Matrix a, Matrix b, Matrix *result, int blockSize);
+int optimizedMatrixMul_DirectAccess_f(float* a, float* b, float* result, int N, int blockSize);
+
 
 
 /**
@@ -147,6 +150,9 @@ int optimizedMatrixMul_DirectAccess(Matrix a, Matrix b, Matrix *result, int bloc
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result);
 
 
+
 int parallelMatrixMul_AVX(Matrix a, Matrix b, Matrix *result);
+
+int parallelMatrixMul_AVX_f(float* a, float* b, float* result, int N);
 
 #endif //FPS_MATRIXMULTIPLIKATION_MATRIX_H

@@ -50,6 +50,23 @@ Matrix createRandomizedMatrix(unsigned int rowCount, unsigned int columnCount) {
     return result;
 }
 
+float* createRandomizedMatrix_f(int N) {
+    float value;
+
+    // TODO: think we could need some testing here?
+    float* result = malloc(N * N * sizeof (float));
+
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            value = rand() % 10;   // value in the range 0 to 9
+            result[(N * i) + j] = value;
+        }
+    }
+    return result;
+}
+
+
+
 void initMatrixWithZeros(Matrix a) {
     for (int i = 0; i < a.rowCount; ++i) {
         for (int j = 0; j < a.rowCount; ++j) {
@@ -155,6 +172,25 @@ bool compareResultMatrices(Matrix stdAlgorithm, Matrix a) {
     return true;
 }
 
+bool compareResultMatrices_F(float* stdAlgorithm, float* a, int N) {
+    for (int i = 0; i < N ; ++i) {
+        for (int j = 0; j < N ; ++j) {
+
+            // element found where values are different
+
+            if (!(nearlyEqual(stdAlgorithm[(N * i) + j],
+                              a[(N * i) + j], COMPARE_EPSILON))) {
+                // TODO: remove printf line
+                printf("false! : %f -- %f\n",stdAlgorithm[(N * i) + j],
+                       a[(N * i) + j]);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
 bool nearlyEqual(float a, float b, float epsilon) {
 
     // TODO: use static float variables?
@@ -201,32 +237,17 @@ int standardMatrixMul(Matrix a, Matrix b, Matrix *result) {
     return 0;
 }
 
-int optimizedMatrixMul_old(Matrix a, Matrix b, Matrix *result, int blockSize) {
-    // TODO: fehler/trivial behandlung blocksize variable
+int standardMatrixMul_f(float* a, float* b, float* result, int N) {
+    float calc;
 
-    /**
-     *
-     * meh.................to slow
-     *
-     */
+    for (int i = 0; i < N ; ++i) {
+        for (int j = 0; j < N ; ++j) {
 
-    int N = a.rowCount;
-    int TILE = blockSize;
-
-    for (int i=0; i<N; i+=TILE) {
-        for (int j = 0; j < N; j += TILE) {
-            for (int k = 0; k < N; k += TILE) {
-
-                /* Regular multiply inside the tiles */
-                for (int y = i; y < i + TILE; y++) {
-                    for (int x = j; x < j + TILE; x++) {
-
-                        for (int z = k; z < k + TILE; z++) {
-                            addToElemValue(result, y, x, (getElementValue(a, y, z) * getElementValue(b, z, x)));
-                        }
-                    }
-                }
+            calc = 0.0;
+            for (int k = 0; k < N ; ++k) {
+                calc += a[(N * i) + k] * b[(N * k) + j];
             }
+            result[(N * i) + j] = calc;
         }
     }
     // TODO:
@@ -260,6 +281,32 @@ int optimizedMatrixMul_DirectAccess(Matrix a, Matrix b, Matrix *result, int bloc
     // TODO:
     return 0;
 }
+
+int optimizedMatrixMul_DirectAccess_f(float* a, float* b, float* result, int N, int blockSize) {
+    int TILE = blockSize;
+
+    for (int i=0; i<N; i+=TILE) {
+        for (int j = 0; j < N; j += TILE) {
+            for (int k = 0; k < N; k += TILE) {
+
+                /* Regular multiply inside the tiles */
+                for (int y = i; y < i + TILE; y++) {
+                    for (int x = j; x < j + TILE; x++) {
+
+
+                        for (int z = k; z < k + TILE; z++) {
+                            result[(N * y) + x] +=
+                                    a[(N * y) + z] * b[(N * z) + x];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // TODO:
+    return 0;
+}
+
 
 int parallelMatrixMul(Matrix a, Matrix b, Matrix *result) {
 
@@ -383,3 +430,44 @@ int parallelMatrixMul_AVX(Matrix a, Matrix b, Matrix *result) {
     // TODO:
     return 0;
 }
+
+int parallelMatrixMul_AVX_f(float* a, float* b, float* result, int N) {
+
+    int calculation_count = N / AVX_VECTOR_SIZE;
+
+    // (III.)
+    for (int i = 0; i < N; ++i) {
+
+        int iN = (i * N);
+
+        // "rows" of matrix B separated in blocks (II.)
+        for (int j = 0; j < calculation_count; ++j) {
+
+            int jAVX = j * AVX_VECTOR_SIZE;
+            float* result_address = &result[iN + jAVX];
+
+
+            // (I.)
+            for (int k = 0; k < N; ++k) {
+
+                // calculation:
+                // __m256 broad_A = _mm256_set1_ps(a.data[k + (i * N)]);
+                // __m256 vector_B = _mm256_load_ps(&b.data[j * AVX_VECTOR_SIZE + (k * N)]);
+                // __m256 temp = _mm256_mul_ps(broad_A, vector_B);
+                // result[] += (broad_A * vector_B)
+
+                // TODO: aufaddieren (+=) <-> OVERHEAD
+                _mm256_storeu_ps(result_address,
+                                 _mm256_add_ps(
+                                         _mm256_mul_ps(
+                                                 _mm256_set1_ps(a[k + iN]),
+                                                 _mm256_loadu_ps(&b[jAVX + (k * N)])),
+                                         _mm256_loadu_ps(result_address)));
+            }
+        }
+    }
+
+    // TODO:
+    return 0;
+}
+

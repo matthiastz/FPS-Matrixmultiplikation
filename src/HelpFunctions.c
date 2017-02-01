@@ -11,11 +11,12 @@ void createResultFolder(char* folder_path, struct stat buf) {
     }
 }
 
-void createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetitions,
+char* createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetitions,
                       double* overall_times, bool* calcs) {
 
     // create new file, mode: append extended
-    FILE *fp = fopen(createFileName(folder_path), "ab+");
+    char* filename = createFileName(folder_path);
+    FILE *fp = fopen(filename, "ab+");
 
     // write content to the file
 //    char* header = "Matrix-Multiplication, using square matrices (N x N)\n";
@@ -48,10 +49,22 @@ void createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetiti
             calcs[2]? "true":"false", overall_times[3], avg_blas);
 
     // TODO: comparison overall, avg
+    fprintf(fp,
+            "------------------------------------------------------------------\n"
+            "Comparison between the 4 algorithms (N = %d):\n"
+            "------------------------------------------------------------------\n\n"
+            "Standard algorithm average time: %.3f\n"
+            "------------------------------------------------------------------\n"
+            "Speedups in comparison to standard algorithm:\n"
+            "cache-optimized algorithm: %.3f x\n"
+            "parallel algorithm: %.3f x\n"
+            "BLAS-lib algorithm: %.3f x\n",
+            Matrix_Dimension_N, avg_std, avg_std/avg_cache, avg_std/avg_parall,
+            avg_std/avg_blas);
 
     // close the file
     fclose(fp);
-
+    return filename;
 }
 
 char* createFileName(char* folder_path) {
@@ -90,4 +103,12 @@ char* createFileName(char* folder_path) {
     return filename;
 }
 
+void printHeader(int N, int REPETITIONS) {
+    printf("|====================================================================|\n");
+    printf("| matrix multiplication (C = A * B) using square matrices (N x N)    |\n");
+    printf("| 4 different algorithms: naive, cache-optimized, parallel, BLAS-lib |\n");
+    printf("|====================================================================|\n");
+    printf("| N = %d, REPETITIONS for each algorithm: %d \n", N, REPETITIONS);
+    printf("|====================================================================|\n");
+}
 
