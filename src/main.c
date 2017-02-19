@@ -1,131 +1,114 @@
 #include <stdio.h>
 #include <time.h>
+#include <cblas.h>// libatlas-dev (3.10.2-7)
 
 #include "include/Matrix.h"
 #include "include/HelpFunctions.h"
 
-
-#include <cblas.h>// libatlas-dev (3.10.2-7)
-
+// file output
 char* RESULT_FOLDER_PATH = "results/";
 struct stat ST = {0};
 
 
 int main() {
-    // measure time, bool variables
-    clock_t start, end;
-    bool calc_correct[3] = {false, false, false};
-    double overall_times[4] = {0,0,0,0};
 
     // TODO: 2er Potenzen meint benedikt (512, 1024, 2048) -> #define?
     // TODO: auch kleine matrix größen betrachten! -> bezug L1-, L2-cache
 
-    unsigned int N = 1025;
-    unsigned int BS = 8;
-    unsigned int REPETITIONS = 5;
+    // TODO: remove unnecessary functions (old version: not plain float matrices)
+
+    // VARIABLES
+
+    clock_t start, end; // measure time
+    bool calc_correct[3] = {false, false, false}; // correct calculations?
+    double overall_times[4] = {0,0,0,0}; // save different overall times in array
+
+    unsigned int N = 512; // dimension (N x N)
+    int BS = 8; // block size
+    int REPETITIONS = 5;
+
+    // INIT.
+
+    float* m1_f = createRandomizedMatrix_f(N);
+    float* m2_f = createRandomizedMatrix_f(N);
+    float* stdAlgorithm_F = calloc(N * N, sizeof (float));
+
+    // TEST FOR DIMENSIONS
 
     if (N % AVX_VECTOR_SIZE != 0 || N < AVX_VECTOR_SIZE) {
         printf("> ERROR! dimension N (%d) has to be: N mod %d == 0\n",N,AVX_VECTOR_SIZE);
         return EXIT_FAILURE;
     }
-
-
     printHeader(N, REPETITIONS);
 
-//
-    Matrix m1 = createRandomizedMatrix(N, N);
-    Matrix m2 = createRandomizedMatrix(N, N);
-    Matrix result = callocMatrix(m1, m2);
-    Matrix resultCache2 = callocMatrix(m1, m2);
-//    Matrix result_Parall = callocMatrix(m1, m2);
+    // === CALCULATIONS ==================================================================
 
-    // TODO: outsource to function
-    float* m1_f = createRandomizedMatrix_f(N);
-    float* m2_f = createRandomizedMatrix_f(N);
+    // STANDARD ALGORITHM
 
-
-    float* stdAlgorithm_F = calloc(N * N, sizeof (float));
-    float* result_f = calloc(N * N, sizeof (float));
-    float* result_cache_f = calloc(N * N, sizeof (float));
-    float* result_para_f = calloc(N * N, sizeof (float));
-    float* result_cblas_f = calloc(N * N, sizeof (float));
-
-
-    // ==================================================================
-    // ===== standard algorithm multiplication ==========================
-    // ==================================================================
     printf("executing standard algorithm multiplications …\n");
-    Matrix stdAlgorithmResult = callocMatrix(m1, m2);
 
     for (int i = 0; i < REPETITIONS; ++i) {
+        float* result_f = calloc(N * N, sizeof (float));
 
+        // one multiplication
         start = clock();
-//        standardMatrixMul(m1, m2, &result);
         standardMatrixMul_f(m1_f, m2_f, result_f, N);
         end = clock();
 
+        // copy values from other matrix
         if (i == 0) {
-            // save result of standard algorithm for comparison
-            stdAlgorithm_F = result_f;
+            for (int j = 0; j < N; ++j) {
+                for (int k = 0; k < N; ++k) {
+                    stdAlgorithm_F[(N * j) + k] = result_f[(N * j) + k];
+                }
+            }
         }
 
         overall_times[0] += ((double) (end - start)) / CLOCKS_PER_SEC;
 
-//        freeMatrix(&result);
-//        result = callocMatrix(m1, m2);
-        result_f = calloc(N * N, sizeof (float));
+        free(result_f);
     }
 
 
-    // ==================================================================
-    // ===== cache optimized multiplication 2 ===========================
-    // ==================================================================
+    // CACHE OPTIMIZED
+
     printf("executing cache optimized multiplications …\n");
 
     for (int i = 0; i < REPETITIONS; ++i) {
+        float* result_cache_f = calloc(N * N, sizeof (float));
 
         start = clock();
-//        optimizedMatrixMul_DirectAccess(m1, m2, &resultCache2, BS);
         optimizedMatrixMul_DirectAccess_f(m1_f, m2_f, result_cache_f, N, BS);
         end = clock();
 
         overall_times[1] += ((double) (end - start)) / CLOCKS_PER_SEC;
         calc_correct[0] = compareResultMatrices_F(stdAlgorithm_F, result_cache_f, N);
 
-//        freeMatrix(&resultCache2);
-//        resultCache2 = callocMatrix(m1, m2);
-        result_cache_f = calloc(N * N, sizeof (float));
+        free(result_cache_f);
     }
 
 
+    // PARALLEL (AVX)
 
-    // ==================================================================
-    // ===== parallel (AVX) =============================================
-    // ==================================================================
     printf("executing parallel multiplications …\n");
 
-//    Matrix avx_result = callocMatrix(m1, m2);
     for (int i = 0; i < REPETITIONS; ++i) {
+        float* result_para_f = calloc(N * N, sizeof (float));
 
         start = clock();
-//        parallelMatrixMul_AVX(m1, m2, &avx_result);
         parallelMatrixMul_AVX_f(m1_f, m2_f, result_para_f, N);
         end = clock();
 
         overall_times[2] += ((double) (end - start)) / CLOCKS_PER_SEC;
         calc_correct[1] = compareResultMatrices_F(stdAlgorithm_F, result_para_f, N);
-//
-//        freeMatrix(&avx_result);
-//        avx_result = callocMatrix(m1, m2);
-        result_para_f = calloc(N * N, sizeof (float));
+
+        free(result_para_f);
     }
 
 
-    // ==================================================================
-    // ===== multiplication using CBLAS (ATLAS-dev 3.10) ================
-    // ==================================================================
+    // CBLAS (ATLAS)
+
     printf("executing multiplications using BLAS …\n");
-//    Matrix result_Cblas = callocMatrix(m1, m2);
     float ALPHA = 1;
     float BETA = 0;
 
@@ -136,6 +119,8 @@ int main() {
 
     /* Single Precision, General Matrix Multiplication */
     for (int i = 0; i < REPETITIONS; ++i) {
+        float* result_cblas_f = calloc(N * N, sizeof (float));
+
 
         start = clock();
         cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,N,N,N,ALPHA,
@@ -147,27 +132,14 @@ int main() {
         overall_times[3] += ((double) (end - start)) / CLOCKS_PER_SEC;
         calc_correct[2] = compareResultMatrices_F(stdAlgorithm_F, result_cblas_f, N);
 
-//        freeMatrix(&result_Cblas);
-        result_cblas_f = calloc(N * N, sizeof (float));
+        free(result_cblas_f);
     }
 
-//
-//    // ==================================================================
-//    // ===== cleanup allocated memory ===================================
-//    // ==================================================================
-    // TODO: clean up float matrices
-//
-    freeMatrix(&m1);
-    freeMatrix(&m2);
-    freeMatrix(&result);
-//    freeMatrix(&resultCache2);
-//    freeMatrix(&result_Parall);
-//    freeMatrix(&result_Cblas);
-//    freeMatrix(&avx_result);
+    // ===== cleanup allocated memory ===================================
 
-//    freeMatrix(&resultOct);
-//    freeOctMatrix(&oct1);
-//    freeOctMatrix(&oct2);
+    free(m1_f);
+    free(m2_f);
+    free(stdAlgorithm_F);
 
 
     // TODO: diagram matrix größe - ausführungszeit
@@ -175,13 +147,15 @@ int main() {
     // mehrfach ausführen, durchschnitt
 
 
-    // ===== FILE OUTPUT ================================
+    // === FILE OUTPUT ===================================================================
+
     createResultFolder(RESULT_FOLDER_PATH, ST);
     char* filename =
             createResultFile(RESULT_FOLDER_PATH, N, REPETITIONS, overall_times, calc_correct);
     printf("\nwriting results to %s …\n", filename);
     printf("done.\n");
 
+    free(filename);
+
     return 0;
 }
-

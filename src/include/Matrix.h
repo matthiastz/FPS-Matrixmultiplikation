@@ -20,9 +20,9 @@
  */
 typedef struct Matrix {
     /** count of rows */
-    unsigned int rowCount;
+    int rowCount;
     /** count of columns */
-    unsigned int columnCount;
+    int columnCount;
     /** the actual matrix which is supposed to have a size of
      * count of rows times columns */
     float *data;
@@ -41,7 +41,7 @@ Matrix callocMatrix(Matrix a, Matrix b);
 /**
  * creates a matrix with given dimension (rows, columns)
  */
-Matrix createRandomizedMatrix(unsigned int rowCount, unsigned int columnCount);
+Matrix createRandomizedMatrix(int rowCount, int columnCount);
 float* createRandomizedMatrix_f(int N);
 
 /**

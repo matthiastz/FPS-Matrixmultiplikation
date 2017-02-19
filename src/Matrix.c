@@ -33,7 +33,7 @@ Matrix callocMatrix(Matrix a, Matrix b) {
  * @param columnCount ouf our generated matrix
  * @return the created matrix
  */
-Matrix createRandomizedMatrix(unsigned int rowCount, unsigned int columnCount) {
+Matrix createRandomizedMatrix(int rowCount, int columnCount) {
     float value;
     Matrix result;
     // TODO: think we could need some testing here?

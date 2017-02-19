@@ -33,16 +33,16 @@ char* createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetit
             "Count of MM-repetitions = %d\n"
             "------------------------------------------------------------------\n\n"
             "1) standard algorithm:\n"
-            "overall time: %.3f sec. -- average time: %.3f sec.\n\n"
+            "overall time: %.6f sec. -- average time: %.6f sec.\n\n"
             "2) cache-optimized algorithm:\n"
             "calculation correct? %s\n"
-            "overall time: %.3f sec. -- average time: %.3f sec.\n\n"
+            "overall time: %.6f sec. -- average time: %.6f sec.\n\n"
             "3) parallel algorithm:\n"
             "calculation correct? %s\n"
-            "overall time: %.3f sec. -- average time: %.3f sec.\n\n"
+            "overall time: %.6f sec. -- average time: %.6f sec.\n\n"
             "4) BLAS-lib algorithm:\n"
             "calculation correct? %s\n"
-            "overall time: %.3f sec. -- average time: %.3f sec.\n\n",
+            "overall time: %.6f sec. -- average time: %.6f sec.\n\n",
             Matrix_Dimension_N, mm_repetitions,
             overall_times[0], avg_std, calcs[0]? "true":"false", overall_times[1], avg_cache,
             calcs[1]? "true":"false", overall_times[2], avg_parall,
