@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -std=c99 -lm -mavx -O2
-LFLAGS = -lcblas
+CFLAGS = -Wall -std=c99 -mavx -O2
+LFLAGS = -lcblas -lm
 SRCDIR = src
 INCLUDEDIR = src/include
 

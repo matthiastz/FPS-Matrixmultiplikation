@@ -7,7 +7,7 @@ Forschungspraktikum Parallele und Verteilte Systeme - TU Chemnitz
 # Installation
     sudo apt-get install libatlas-base-dev
     #include <cblas.h>
-    Flag: -lcblas
+    Linker Flag: -lcblas -lm
 
 # Kompilieren
     make -j4  # -j4 ist optional, ggf. noch -B, um garantiert zu rekompilieren
