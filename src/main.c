@@ -10,12 +10,13 @@ char* RESULT_FOLDER_PATH = "results/";
 struct stat ST = {0};
 
 
-int main() {
+// TODO: write docu for command line arguments (% 8)
+
+int main(int argc, const char **argv) {
 
     // TODO: 2er Potenzen meint benedikt (512, 1024, 2048) -> #define?
     // TODO: auch kleine matrix größen betrachten! -> bezug L1-, L2-cache
 
-    // TODO: remove unnecessary functions (old version: not plain float matrices)
 
     // VARIABLES
 
@@ -23,9 +24,12 @@ int main() {
     bool calc_correct[3] = {false, false, false}; // correct calculations?
     double overall_times[4] = {0,0,0,0}; // save different overall times in array
 
-    unsigned int N = 512; // dimension (N x N)
-    int BS = 8; // block size
-    int REPETITIONS = 5;
+    // arguments from command line, a.out = argv[0]
+    unsigned int N = (unsigned int) atoi(argv[1]); // dimension (N x N)
+    int BS = atoi(argv[2]); // block size
+    int REPETITIONS = atoi(argv[3]);
+
+    printf("cmd args: %d %d %d\n",N,BS,REPETITIONS);
 
     // INIT.
 
@@ -38,8 +42,11 @@ int main() {
     if (N % AVX_VECTOR_SIZE != 0 || N < AVX_VECTOR_SIZE) {
         printf("> ERROR! dimension N (%d) has to be: N mod %d == 0\n",N,AVX_VECTOR_SIZE);
         return EXIT_FAILURE;
+    } else if (BS % AVX_VECTOR_SIZE != 0) {
+        printf("> ERROR! block size BS (%d) has to be: BS mod %d == 0\n",N,AVX_VECTOR_SIZE);
+        return EXIT_FAILURE;
     }
-    printHeader(N, REPETITIONS);
+    printHeader(N, BS, REPETITIONS);
 
     // === CALCULATIONS ==================================================================
 
@@ -57,8 +64,8 @@ int main() {
 
         // copy values from other matrix
         if (i == 0) {
-            for (int j = 0; j < N; ++j) {
-                for (int k = 0; k < N; ++k) {
+            for (unsigned int j = 0; j < N; ++j) {
+                for (unsigned int k = 0; k < N; ++k) {
                     stdAlgorithm_F[(N * j) + k] = result_f[(N * j) + k];
                 }
             }
@@ -82,7 +89,7 @@ int main() {
         end = clock();
 
         overall_times[1] += ((double) (end - start)) / CLOCKS_PER_SEC;
-        calc_correct[0] = compareResultMatrices_F(stdAlgorithm_F, result_cache_f, N);
+        calc_correct[0] = compareResultMatrices_f(stdAlgorithm_F, result_cache_f, N);
 
         free(result_cache_f);
     }
@@ -100,7 +107,7 @@ int main() {
         end = clock();
 
         overall_times[2] += ((double) (end - start)) / CLOCKS_PER_SEC;
-        calc_correct[1] = compareResultMatrices_F(stdAlgorithm_F, result_para_f, N);
+        calc_correct[1] = compareResultMatrices_f(stdAlgorithm_F, result_para_f, N);
 
         free(result_para_f);
     }
@@ -130,7 +137,7 @@ int main() {
         end = clock();
 
         overall_times[3] += ((double) (end - start)) / CLOCKS_PER_SEC;
-        calc_correct[2] = compareResultMatrices_F(stdAlgorithm_F, result_cblas_f, N);
+        calc_correct[2] = compareResultMatrices_f(stdAlgorithm_F, result_cblas_f, N);
 
         free(result_cblas_f);
     }
@@ -151,7 +158,7 @@ int main() {
 
     createResultFolder(RESULT_FOLDER_PATH, ST);
     char* filename =
-            createResultFile(RESULT_FOLDER_PATH, N, REPETITIONS, overall_times, calc_correct);
+            createResultFile(RESULT_FOLDER_PATH, N, BS, REPETITIONS, overall_times, calc_correct);
     printf("\nwriting results to %s …\n", filename);
     printf("done.\n");
 

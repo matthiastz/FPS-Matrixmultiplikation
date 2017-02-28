@@ -11,7 +11,7 @@ void createResultFolder(char* folder_path, struct stat buf) {
     }
 }
 
-char* createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetitions,
+char* createResultFile(char* folder_path, int Matrix_Dimension_N, int BS, int mm_repetitions,
                       double* overall_times, bool* calcs) {
 
     // create new file, mode: append extended
@@ -30,6 +30,7 @@ char* createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetit
             "4 different algorithms: naive, cache-optimized, parallel, BLAS-lib\n"
             "------------------------------------------------------------------\n"
             "N = %d\n"
+            "BLOCK SIZE = %d\n"
             "Count of MM-repetitions = %d\n"
             "------------------------------------------------------------------\n\n"
             "1) standard algorithm:\n"
@@ -43,7 +44,7 @@ char* createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetit
             "4) BLAS-lib algorithm:\n"
             "calculation correct? %s\n"
             "overall time: %.6f sec. -- average time: %.6f sec.\n\n",
-            Matrix_Dimension_N, mm_repetitions,
+            Matrix_Dimension_N, BS, mm_repetitions,
             overall_times[0], avg_std, calcs[0]? "true":"false", overall_times[1], avg_cache,
             calcs[1]? "true":"false", overall_times[2], avg_parall,
             calcs[2]? "true":"false", overall_times[3], avg_blas);
@@ -103,12 +104,12 @@ char* createFileName(char* folder_path) {
     return filename;
 }
 
-void printHeader(int N, int REPETITIONS) {
+void printHeader(int N, int BS, int REPETITIONS) {
     printf("|====================================================================|\n");
     printf("| matrix multiplication (C = A * B) using square matrices (N x N)    |\n");
     printf("| 4 different algorithms: naive, cache-optimized, parallel, BLAS-lib |\n");
     printf("|====================================================================|\n");
-    printf("| N = %d, REPETITIONS for each algorithm: %d \n", N, REPETITIONS);
+    printf("| N = %d, BLOCK SIZE = %d, REPETITIONS for each algorithm: %d \n", N, BS,REPETITIONS);
     printf("|====================================================================|\n");
 }
 

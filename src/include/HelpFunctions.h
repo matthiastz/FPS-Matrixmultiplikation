@@ -12,11 +12,16 @@
 #include <string.h>
 #include <stdbool.h>
 
-
+/**
+ * help functions to create a result folder, if necessary
+ * and the result times in a text file
+ */
 void createResultFolder(char* folder_path, struct stat buf);
-char* createResultFile(char* folder_path, int Matrix_Dimension_N, int mm_repetitions,
+char* createResultFile(char* folder_path, int Matrix_Dimension_N, int BS, int mm_repetitions,
                       double* overall_times, bool* calcs);
 char* createFileName(char* folder_path);
-void printHeader(int N, int REPETITIONS);
+
+
+void printHeader(int N, int BS, int REPETITIONS);
 
 #endif //FPS_MATRIXMULTIPLIKATION_HELPFUNCTIONS_H
