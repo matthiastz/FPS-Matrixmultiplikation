@@ -10,7 +10,7 @@ Die folgenden vier Verfahren stehen zur Verfügung:
 - 4. BLAS-Bibliothek (ATLAS)
 
 Es wurde eine Einschränkung auf quadratische Matrizen (N x N) vorgenommen.
-Die Werte für Matrixgröße (N) und Blockgröße (BS) müssen *Zweierpotenzen* sein,
+Die Werte für Matrixgröße (N) und Blockgröße (BS) müssen **Zweierpotenzen** sein,
 um Verfahren 2 und 3 fehlerfrei ausführen zu können.
 
     N >= 8
@@ -34,6 +34,9 @@ sodass man schnell und einfach verschiedene Parameter ausprobieren kann.
 Eine Ausführung mit N = 1024, BS = 8 und REPETITIONS = 5 sieht dann so aus: 
 
     ./a.out 1024 8 5
+
+Nach erfolgreicher Ausführung ist dann im Ordner `result/` eine neue Textdatei mit den 
+Ergebnissen und zugehörigen Parametern verfügbar.
 
 # Quellen
 [Intel Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide)
