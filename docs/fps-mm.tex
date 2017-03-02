@@ -1,0 +1,97 @@
+\documentclass[a4paper,11pt]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{ngerman}
+\usepackage{graphicx}
+\usepackage{xspace}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{amssymb} % mathbb
+
+\newcommand{\zB}{\mbox{z.\,B.}\xspace}
+\newcommand{\bspw}{\mbox{bspw.}\xspace}
+\newcommand{\bzw}{\mbox{bzw.}\xspace}
+\newcommand{\iAllg}{\mbox{i.\,Allg.}\xspace}
+\newcommand{\ua}{\mbox{u.\,a.}\xspace}
+\newcommand{\vs}{\mbox{vs.}\xspace}
+
+\def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bf ++}}}
+\def\GPP{{G\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bf ++}}}
+\setlength{\parindent}{0em} % Einrückung verhindern
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+\title{\includegraphics[width=0.6\textwidth]{bilder/tuc-logo-black.pdf}
+\\Effiziente Implementierung von Matrix-Algorithmen für Multicore-Systeme
+}
+\subtitle{Praktikum Forschungsschwerpunkt Parallele und verteilte Systeme}
+\author{Autor: Matthias Tietz}
+
+
+\begin{document}
+
+\maketitle \thispagestyle{empty}
+
+\newpage
+%%% Informationen/Leerseite %%%
+\thispagestyle{empty}
+~
+\vfill
+Technische Universität Chemnitz\\
+Fakultät für Informatik\\
+Professur Praktische Informatik\\
+Praktikum Forschungsschwerpunkt Parallele und verteilte Systeme\\
+Wintersemester 2016/2017\\
+
+Effiziente Implementierung von Matrix-Algorithmen für Multicore-Systeme\\
+Autor: Matthias Tietz\\
+Matrikelnummer:~375681\\
+Bachelor Informatik, 5.~Fachsemester
+
+\newpage \tableofcontents
+\newpage
+
+\section{Einleitung}
+%Hinführung zum Thema, MM, mögliche Optimierung
+Matrix-Algorithmen finden in einer Vielzahl verschiedener Bereiche Anwendung.
+So werden \bspw in der linearen Algebra häufig Matrizen eingesetzt um linearere Gleichungssysteme oder Eigenwertprobleme zu lösen. Im Kontext linearer Abbildungen lassen sich geometrische Transformationen
+durch Matrizenprodukte abbilden, was als Grundlage für die Computergrafik zur Realisierung von Koordinatentransformationenen dient.\newline
+
+Der naive Standardalgorithmus zur Matrixmultiplikation 
+$C\,= A \cdot B$ mit $A \in \mathbb{R}^{l \times m}$, $B \in \mathbb{R}^{m \times n}$,
+$C \in \mathbb{R}^{l \times n}$ verfügt über eine kubische Laufzeit, für jedes Element $c$ der 
+Ergebnismatrix $C$ müssen die Werte eines Zeilenvectors von $A$ mit den Werten eines Spaltenvectors
+von $B$ schrittweise multipliziert und in $c$ aufsummiert werden. Die Ergebnismatrix $C$
+hat die Dimensionen $l \times n$ und für jedes Element aus $C$ entsteht ein linearer Aufwand
+$m \Rightarrow$ $\mathcal{O}(m \cdot l \cdot n)$.\newline
+
+Der Algorithmus ist also einfach aufgebaut, es finden nur mathematisch grundlegende Operationen
+(Multiplikation, Addition) statt, jedoch in einer großen Anzahl. 
+Desweiteren werden die Werte aus
+den Ausgangsmatrizen mehrfach verwendet, um \bspw die erste Zeile der Ergebnismatrix $C$ zu berechnen,
+benötigen wir für jedes einzelne Element $c$ den gleichen Zeilenvector aus $A$, das gilt für die
+Spaltenvectoren von $B$ analog.
+
+
+\section{Implementierung}
+Indexzugriff, wenig unnötige Funktionsaufrufe, schlechter lesbar
+Vor/Nachteile
+\subsection{Standardalgorithmus}
+\subsection{Cache-optimiert}
+\subsection{paralleles Verfahren}
+\subsection{BLAS}
+
+
+\section{Benchmark}
+
+\section{Zusammenfassung}
+
+\section{Quellen}
+Stil: siehe HS
+
+
+\end{document}
