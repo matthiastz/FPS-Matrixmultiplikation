@@ -61,7 +61,7 @@ int standardMatrixMul_f(float* a, float* b, float* result, int N);
  * Cache optimized matrix multiplication:
  * make the execution of loops more efficient, by increasing the locality of reference
  */
-int optimizedMatrixMul_DirectAccess_f(float* a, float* b, float* result, int N, int blockSize);
+int optimizedMatrixMul_f(float* a, float* b, float* result, int N, int blockSize);
 
 
 

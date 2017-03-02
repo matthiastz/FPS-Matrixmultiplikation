@@ -91,18 +91,18 @@ int standardMatrixMul_f(float* a, float* b, float* result, int N) {
     return 0;
 }
 
-int optimizedMatrixMul_DirectAccess_f(float* a, float* b, float* result, int N, int blockSize) {
-    int TILE = blockSize;
+int optimizedMatrixMul_f(float* a, float* b, float* result, int N, int blockSize) {
+    int BLOCK = blockSize;
 
-    for (int i=0; i<N; i+=TILE) {
-        for (int j = 0; j < N; j += TILE) {
-            for (int k = 0; k < N; k += TILE) {
+    for (int i = 0; i < N; i += BLOCK) {
+        for (int j = 0; j < N; j += BLOCK) {
+            for (int k = 0; k < N; k += BLOCK) {
 
                 /* Regular multiply inside the tiles */
-                for (int y = i; y < i + TILE; y++) {
-                    for (int x = j; x < j + TILE; x++) {
+                for (int y = i; y < i + BLOCK; y++) {
+                    for (int x = j; x < j + BLOCK; x++) {
 
-                        for (int z = k; z < k + TILE; z++) {
+                        for (int z = k; z < k + BLOCK; z++) {
                             result[(N * y) + x] +=
                                     a[(N * y) + z] * b[(N * z) + x];
                         }

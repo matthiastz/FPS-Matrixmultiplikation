@@ -85,7 +85,7 @@ int main(int argc, const char **argv) {
         float* result_cache_f = calloc(N * N, sizeof (float));
 
         start = clock();
-        optimizedMatrixMul_DirectAccess_f(m1_f, m2_f, result_cache_f, N, BS);
+        optimizedMatrixMul_f(m1_f, m2_f, result_cache_f, N, BS);
         end = clock();
 
         overall_times[1] += ((double) (end - start)) / CLOCKS_PER_SEC;

@@ -10,6 +10,7 @@
 \usepackage[hyphens]{url}
 \usepackage{hyperref}
 \usepackage{amssymb} % mathbb
+\usepackage{amsmath}% http://ctan.org/pkg/amsmath
 
 \newcommand{\zB}{\mbox{z.\,B.}\xspace}
 \newcommand{\bspw}{\mbox{bspw.}\xspace}
@@ -17,10 +18,47 @@
 \newcommand{\iAllg}{\mbox{i.\,Allg.}\xspace}
 \newcommand{\ua}{\mbox{u.\,a.}\xspace}
 \newcommand{\vs}{\mbox{vs.}\xspace}
+\newcommand{\inkl}{\mbox{inkl.}\xspace}
 
 \def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bf ++}}}
 \def\GPP{{G\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bf ++}}}
 \setlength{\parindent}{0em} % Einrückung verhindern
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+% \fontfamily{pzc}\selectfont
+% \ttfamily
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  basicstyle=\footnotesize\fontfamily{bch}\selectfont,        
+  % the size & type of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={min,max},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=C,                 % the language of the code
+  morekeywords={},                 % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+%   title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,7 +94,6 @@ Bachelor Informatik, 5.~Fachsemester
 \newpage
 
 \section{Einleitung}
-%Hinführung zum Thema, MM, mögliche Optimierung
 Matrix-Algorithmen finden in einer Vielzahl verschiedener Bereiche Anwendung.
 So werden \bspw in der linearen Algebra häufig Matrizen eingesetzt um linearere Gleichungssysteme oder Eigenwertprobleme zu lösen. Im Kontext linearer Abbildungen lassen sich geometrische Transformationen
 durch Matrizenprodukte abbilden, was als Grundlage für die Computergrafik zur Realisierung von Koordinatentransformationenen dient.\newline
@@ -74,24 +111,93 @@ Der Algorithmus ist also einfach aufgebaut, es finden nur mathematisch grundlege
 Desweiteren werden die Werte aus
 den Ausgangsmatrizen mehrfach verwendet, um \bspw die erste Zeile der Ergebnismatrix $C$ zu berechnen,
 benötigen wir für jedes einzelne Element $c$ den gleichen Zeilenvector aus $A$, das gilt für die
-Spaltenvectoren von $B$ analog.
+Spaltenvectoren von $B$ analog.\newline
 
+Aus den genannten Gründen ergibt sich das Potenzial, das Vorgehen bei der Matrixmultiplikation
+zu verbessern. So könnte man die for()-Schleifen so umstrukturieren, dass man diese in kleinere
+Iterationsblöcke aufteilt und damit vom Lokalitätsprinzip Gebrauch macht. Ein weiterer Ansatz wäre
+ein paralleles Verfahren, um den Zeitaufwand zu minimieren, in dem mehrere Operationen in einem
+Schritt ausgeführt werden.
 
 \section{Implementierung}
-Indexzugriff, wenig unnötige Funktionsaufrufe, schlechter lesbar
-Vor/Nachteile
+Bei der Umsetzung der Matrix-Algorithmen ist in erster Linie die Performance-Verbesserung 
+von Bedeutung, daher wurde bei der Implementierung kaum Wert auf eine besonders
+gute Benutzerfreundlichkeit, umfassende Parameterprüfung oder Tests gelegt --
+man geht davon aus, dass der Nutzer korrekte Eingabewerte verwendet.\newline
+
+Zu Beginn der Implementierung hatte ich für die Matrizen einen Datentyp als
+\texttt{struct} definiert, was sich aber als unnötig herausgestellt hat, der
+Code sollte auf das Notwendige reduziert sein. Daher werden die einzelnen 
+Matrizen einfach als float-Array umgesetzt. Zur Vereinfachung der verschiedenen
+Verfahren wurde eine Einschränkung auf quadratische Matrizen ($n \times n$) 
+und Parametergrößen für $n$ als Zweierpotenzen vorgenommen.\newline
+
+Mit dem Ziel der Optimierungen, wird auch bewusst auf einen guten Coding-Stil verzichtet,
+so werden in den performancerelevanten Bereichen unnötige Funktionsaufrufe oder Variablen vermieden, was einen schlechter lesbaren Code zur Folge hat. So wird \bspw anstatt einer
+Hilfsfunktion zum Setzen eines Wertes in einer bestimmten Matrix
+
+\lstinputlisting[language=C]{code/set.c}
+direkt \texttt{result[(N * i) + j] = value;} verwendet.\newline
+
+Die Ausgangsmatrizen $A$ und $B$
+werden vor Benutzung in den verschiedenen Verfahren mit pseudo-zufälligen Werten initialisert
+(\texttt{float$*$ createRandomizedMatrix\_f(int N);}), da die konkreten Werte nicht von großer Bedeutung sind, sollte dieses Vorgehen ausreichend sein. Die Ergebnismatrizen werden außerhalb des eigentlichen
+Algorithmus mit Nullen initialisiert (\texttt{calloc()}). Das Repository \inkl einer kleinen
+Beschreibung ist auf GitHub \cite{ghub} frei verfügbar.
+
+
 \subsection{Standardalgorithmus}
-\subsection{Cache-optimiert}
-\subsection{paralleles Verfahren}
+Der Standardalgorithmus birgt keine großen Überraschungen und wurde in Anlehnung auf die 
+Gleichung aus der Aufgabenstellung umgesetzt. In den beiden äußeren Schleifen 
+wird über die Zeilen und Spalten der Ergebnismatrix \texttt{result} iteriert,
+in der innersten Schleife wird dann die Produktsumme der Eingangsmatrizen (\texttt{a, b}) in der
+Variable \texttt{calc} gebildet und der Wert anschließend gespeichert.
+Einzige Optimierung ist hierbei der direkte Zugriff per Index auf die Matrizen.
+
+\lstinputlisting[language=C]{code/std.c}
+
+\subsection{Cache-optimiertes Verfahren}
+Bei dem Cache-optimiertes Verfahren fand die Umsetzung mittels \emph{Loop tiling} statt,
+wodurch die Ausführung der Schleifen effizienter wird. Das Loop tiling gliedert die 
+Matrizen in kleinere Blöcke, auf denen die Matrixmultiplikation durchgeführt wird.
+Dadurch verbleiben Daten, die bald wieder verwendet werden, im schnellen Hauptspeicher der 
+CPU (Cache). \newpage
+
+\lstinputlisting[language=C]{code/block.c}
+%int optimizedMatrixMul_f(float* a, float* b, float* result, int N, int BS) {
+Die Funktionssignatur besteht nun neben den bekannten Matrizen \texttt{a, b} und \texttt{result}
+und der Dimension \texttt{N} nun noch zusätzlich aus einem Parameter \texttt{BS} für 
+die Blockgröße, in die die Matrizen unterteilt werden sollen.\newline
+
+In den äußeren drei Schleifen (Zeile 4-6) wird dafür gesorgt, dass der korrekte Offset eingehalten wird,
+sodass anstatt über die komplette Dimension \texttt{N} der Matrizen zu iterieren, nur auf den
+kleinen Blöcken der Größe \texttt{BS} gearbeitet wird. Daher gilt zu beachten, dass die Indexvariablen
+\texttt{i,~j} und \texttt{k} nicht einfach inkrementiert werden wie bei herkömmlichen Schleifen,
+sondern um den Offset-Wert \texttt{BS} erhöht werden. Daher auch die Forderung, dass 
+die Parametergrößen als Zweierpotenz zu wählen sind, sodass $N \bmod BS = 0$, sich also die 
+Matrizen restlos in Blöcke unterteilen lassen.\newline
+
+Die inneren Schleifen führen dann 
+für die einzelnen Blöcke eine reguläre Matrixmultiplikation aus.
+% bezug ijk -> zyx (übergeben)
+
+\subsection{Paralleles Verfahren}
 \subsection{BLAS}
 
 
 \section{Benchmark}
+%bezug main ... wiederholungen, etc
+Benutzung: Github, Parameter Kommandozeile etc.
+korrekte Berechnung <-> Std.algor., funktion nearlyEqual
 
 \section{Zusammenfassung}
 
 \section{Quellen}
-Stil: siehe HS
+\begin{thebibliography}{9}
+
+\bibitem{ghub} \url{https://github.com/matthiastz/FSP-Matrixmultiplikation}, März 2017
+
+\end{thebibliography}
 
 
 \end{document}
