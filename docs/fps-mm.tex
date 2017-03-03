@@ -93,7 +93,7 @@ Bachelor Informatik, 5.~Fachsemester
 \newpage \tableofcontents
 \newpage
 
-\section{Einleitung}
+\section{Einleitung}\label{chp:Einleitung}
 Matrix-Algorithmen finden in einer Vielzahl verschiedener Bereiche Anwendung.
 So werden \bspw in der linearen Algebra häufig Matrizen eingesetzt um linearere Gleichungssysteme oder Eigenwertprobleme zu lösen. Im Kontext linearer Abbildungen lassen sich geometrische Transformationen
 durch Matrizenprodukte abbilden, was als Grundlage für die Computergrafik zur Realisierung von Koordinatentransformationenen dient.\newline
@@ -164,24 +164,82 @@ Dadurch verbleiben Daten, die bald wieder verwendet werden, im schnellen Hauptsp
 CPU (Cache). \newpage
 
 \lstinputlisting[language=C]{code/block.c}
-%int optimizedMatrixMul_f(float* a, float* b, float* result, int N, int BS) {
+
 Die Funktionssignatur besteht nun neben den bekannten Matrizen \texttt{a, b} und \texttt{result}
 und der Dimension \texttt{N} nun noch zusätzlich aus einem Parameter \texttt{BS} für 
 die Blockgröße, in die die Matrizen unterteilt werden sollen.\newline
 
 In den äußeren drei Schleifen (Zeile 4-6) wird dafür gesorgt, dass der korrekte Offset eingehalten wird,
-sodass anstatt über die komplette Dimension \texttt{N} der Matrizen zu iterieren, nur auf den
-kleinen Blöcken der Größe \texttt{BS} gearbeitet wird. Daher gilt zu beachten, dass die Indexvariablen
+sodass anstatt direkt über die komplette Dimension \texttt{N} der Matrizen zu iterieren, nur auf den
+kleinen Blöcken der Größe \texttt{BLOCK} gearbeitet wird. Daher gilt zu beachten, dass die Indexvariablen
 \texttt{i,~j} und \texttt{k} nicht einfach inkrementiert werden wie bei herkömmlichen Schleifen,
-sondern um den Offset-Wert \texttt{BS} erhöht werden. Daher auch die Forderung, dass 
-die Parametergrößen als Zweierpotenz zu wählen sind, sodass $N \bmod BS = 0$, sich also die 
-Matrizen restlos in Blöcke unterteilen lassen.\newline
+sondern um den Offset-Wert \texttt{BLOCK} erhöht werden. Daher auch die Forderung, dass 
+die Parametergrößen als Zweierpotenz zu wählen sind, sodass $N \bmod BS = 0$, sich also jede 
+Matrix restlos in Blöcke unterteilen lässt.\newline
 
-Die inneren Schleifen führen dann 
-für die einzelnen Blöcke eine reguläre Matrixmultiplikation aus.
-% bezug ijk -> zyx (übergeben)
+Die inneren Schleifen (Zeile 8-12) führen dann für die einzelnen Blöcke eine reguläre 
+Matrixmultiplikation aus. Hier bekommen die inneren Schleifenvariablen \texttt{y, x, z} den korrekten 
+Startpunkt aus \texttt{i, j, k} übergeben und durchlaufen dann anhand der jeweiligen 
+Schleifenabbruchbedingung die Berechnungen auf Matrizen der Größe \texttt{BLOCK} $\times$ \texttt{BLOCK}.
 
 \subsection{Paralleles Verfahren}
+Wie bereits in der Einleitung~\ref{chp:Einleitung} erwähnt, ist für die 
+Matrizenmultiplikation eine große Anzahl gleichartiger Rechenoperationen notwendig.
+Daher ergibt sich die Möglichkeit, diese Eigenschaft der Parallelisierbarkeit auszunutzen,
+also mehrere Daten quasi-parallel zu bearbeiten.\newline
+
+Um dieses Vorhaben umzusetzen, bieten sich die Advanced Vector Extensions (AVX) an,
+welche eine Befehlssatz-Erweiterung für Mikroprozessoren darstellt. Diese Prozessoren
+verfügen über SIMD-Erweiterungen (Register, Instruktionen), die es ermöglichen mit einem Befehlsaufruf  mehrere einheitliche Datensätze parallel zu verarbeiten. Um diese Funktionalitäten auf 
+Hochsprachen-Ebene zu verwenden, können mithilfe von intrinsischen Funktionen 
+die prozessorspezifischen Befehle als normale Funktionsaufrufe abstrahiert werden,
+Unterstützung dafür bieten verschiedene Compiler. Eine gute Übersicht über die sogenannten
+\emph{Intrinsics} findet man auf der Website von Intel \cite{intr}.\newline
+
+Die relevanten Funktionen, um die Matrixmultiplikation mithilfe von AVX umzusetzen,
+umfassen mindestens die Möglichkeiten Werte aus einer Matrix laden/speichern
+und Additionen/Multiplikationen ausführen zu können. Da die bisherigen Matrizen auch auf 
+float-Werten basieren, kommen für die Berechnungen float-Vectoren (\texttt{\_\_m256}) zum
+Einsatz, welche eine Kapazität von 256 Bit bereitstellen und damit 8 floats speichern
+können. Hier eine Übersicht über die in meiner Implementierung benutzten Funktionen:\newline
+
+\begin{tabular}{| l | l |}
+\hline
+Name & Beschreibung \\ \hline
+  
+\texttt{void \textbf{\_mm256\_storeu\_ps}} & speichert einen 256-bit-Vector \texttt{a} an der Stelle\\
+\texttt{(float$*$ mem\_addr, \_\_m256 a)} &  \texttt{mem\_addr} ab   \\ \hline
+
+\texttt{\_\_m256 \textbf{\_mm256\_add\_ps}} & addiert die Elemente der Vectoren \texttt{a} und 
+\texttt{b} \\
+\texttt{(\_\_m256 a, \_\_m256 b)} & und gibt den Ergebnisvector zurück \\ \hline
+
+\texttt{\_\_m256 \textbf{\_mm256\_mul\_ps}} & multipliziert die Elemente der Vectoren \texttt{a} und \texttt{b} \\
+\texttt{(\_\_m256 a, \_\_m256 b)} & und gibt den Ergebnisvector zurück \\ \hline
+
+\texttt{\_\_m256 \textbf{\_mm256\_set1\_ps} (float a)} & erstellt einen Vector, dessen Elemente alle den 
+\\
+& Wert aus \texttt{a} erhalten \\ \hline
+
+\texttt{\_\_m256 \textbf{\_mm256\_loadu\_ps}} & lädt die Werte aus \texttt{mem\_addr} in einen Vector und \\
+\texttt{(float const$*$ mem\_addr)} & gibt diesen zurück \\ \hline
+\end{tabular}\newline
+
+Durch Einbinden des Headers \texttt{<immintrin.h>} stehen alle AVX-Funktionen bereit.
+
+
+% Implementierung
+\lstinputlisting[language=C]{code/avx.c}
+In der Funktionssignatur tauchen wieder die drei bekannten Matrizen und die Dimension \texttt{N} auf.
+Für die Größe der Vectoren im AVX-Verfahren wurde eine globale Variable \texttt{AVX\_VECTOR\_SIZE} ($=8$)
+eingeführt. 
+
+% innere Schleife: Erklärung anhand serieller Ausführung, verschachtelte Komp. -> weniger Overhead
+% äüßeren schleifen zur iteration über die vectoren (also abschnitte der größe 8), 
+% -> calc_count -> nicht über N; bzw über ganze  matrix größe (rest über N)
+% temp. variablen um adresse zum speichern nicht jedes mal neu zu berechnen 
+% -> aufzeichnung hefter
+
 \subsection{BLAS}
 
 
@@ -191,11 +249,13 @@ Benutzung: Github, Parameter Kommandozeile etc.
 korrekte Berechnung <-> Std.algor., funktion nearlyEqual
 
 \section{Zusammenfassung}
+% AVX 512, AVX 2... aber prozessorspez.
 
 \section{Quellen}
 \begin{thebibliography}{9}
 
 \bibitem{ghub} \url{https://github.com/matthiastz/FSP-Matrixmultiplikation}, März 2017
+\bibitem{intr} \url{https://software.intel.com/sites/landingpage/IntrinsicsGuide}, März 2017
 
 \end{thebibliography}
 
