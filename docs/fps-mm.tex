@@ -232,21 +232,72 @@ Durch Einbinden des Headers \texttt{<immintrin.h>} stehen alle AVX-Funktionen be
 \lstinputlisting[language=C]{code/avx.c}
 In der Funktionssignatur tauchen wieder die drei bekannten Matrizen und die Dimension \texttt{N} auf.
 Für die Größe der Vectoren im AVX-Verfahren wurde eine globale Variable \texttt{AVX\_VECTOR\_SIZE} ($=8$)
-eingeführt. 
+eingeführt, der Algorithmus für dieses Verfahren richtet sich direkt nach dieser Größeneinteilung.
+AVX bietet die Datenstruktur der Vectoren (\texttt{\_\_m256}, single-precision) und dafür definierte Funktionen an, wodurch (Rechen-)Operationen auf 8 Datensätzen gleichzeitig vollzogen werden können.
+\newline
 
-% innere Schleife: Erklärung anhand serieller Ausführung, verschachtelte Komp. -> weniger Overhead
-% äüßeren schleifen zur iteration über die vectoren (also abschnitte der größe 8), 
-% -> calc_count -> nicht über N; bzw über ganze  matrix größe (rest über N)
-% temp. variablen um adresse zum speichern nicht jedes mal neu zu berechnen 
-% -> aufzeichnung hefter
+Die äußerste Schleife (Zeile 4) dient zur Iteration über die Zeilen der Matrix \texttt{a}
+und zur Bestimmung der Position zum Speichern des Ergebnisvectors in \texttt{result}.
+Um die Anzahl der notwendigen Zwischenberechnungen abzuspeichern, dient die Variable
+\texttt{calculation\_count}. Die Matrix \texttt{b} hat eine Spaltenzahl von \texttt{N},
+so lässt sich diese durch die Vectorlänge in \texttt{N}$/8$ einteilen, da die Werte aus 
+$8$ verschiedenen Spalten in einem Vector abgelegt werden.\newline
+
+Die Schleife in Zeile 7 iteriert nun über diese Einteilung und bestimmt die finale Position zum 
+Speichern des Ergebnisvectors. In der innersten Schleife (Zeile 11) findet nun die eigentliche
+Berechnung mittels AVX statt. Hier wird für Matrix \texttt{a} aus jeder einzelnen Spalte
+\texttt{k} (Einteilung \texttt{N})
+aus Zeile \texttt{i} ein broadcast-Vector\footnote{\texttt{\_\_m256 \_mm256\_set1\_ps (float a)}}
+erzeugt, da dieser eine float-Wert sowieso mit mehreren Werten aus Matrix \texttt{b} 
+(Zeile \texttt{k}) multipliziert werden muss, daher wird das direkt in einem Schritt erledigt
+und das Ergebnis anschließend an der Stelle \texttt{result\_address} aufsummiert.\newline
+
+Um weniger Overhead zu verursachen, wurde in Zeile 12-17 bewusst auf das explizite Speichern von 
+Zwischenergebnissen verzichtet. Eine serielle (und besser verständliche) Notation der
+Berechnungsvorschrift sieht etwa so aus:
+
+\lstinputlisting[language=C]{code/avx_s.c}
 
 \subsection{BLAS}
+Zu Vergleichszwecken sollte eine beliebige BLAS-Bibliothek verwendet werden, welche 
+\ua eine hochoptimierte Implementierung für die Matrixmultiplikation bereitstellt.
+In diesem Fall habe ich mich für ATLAS \cite{atlas} entschieden -- nach erfolgreicher
+Installation und Einbinden des Headers \texttt{<cblas.h>} ist die Schnittstelle zu BLAS
+ verfügbar.\newline
 
+% TODO: kürzen?
+
+
+Um nun wie bei den anderen Verfahren eine Matrixmultiplikation auf float-Werten auszuführen, 
+bietet die Bibliothek den Funktionsruf \texttt{cblas\_sgemm(…)} (Single Precision, General Matrix Multiplication) an, wodurch allgemein die Gleichung  $C = \alpha \cdot op(A) \cdot op(B) + 
+\beta \cdot C$ \cite{blasqr} umgesetzt wird. Durch Deaktivieren der Operationen $op(X)$ auf den 
+Eingabematrizen und Setzen von $\alpha = 1, \beta = 0$ erhält man die gewöhnliche Matrixmultiplikation 
+der Form $C\,= A \cdot B$.
 
 \section{Benchmark}
 %bezug main ... wiederholungen, etc
-Benutzung: Github, Parameter Kommandozeile etc.
-korrekte Berechnung <-> Std.algor., funktion nearlyEqual
+
+Das Benchmarkprogramm wurde im Rahmen der \texttt{main()}-Funktion umgesetzt,
+der Code ist so aufgebaut, dass jedes Verfahren (1-4) R-mal ausgeführt wird
+und aus der benötigten Zeit der Durschnitt gebildet wird. Die notwendigen Parameter
+(Matrixgröße, Blockgröße, Wiederholungsanzahl) müssen direkt über die Kommandozeile übergeben werden.
+Eine Ausführung mit $N = 1024, BS = 8, R = 5$ sieht dann so aus: \texttt{./a.out 1024 8 5}.
+\newline
+
+Hier nocheinmal der Hinweis, dass primär der Nutzer für korrekte Eingaben verantwortlich ist, 
+grob falsche numerische Werte werden jedoch abgefangen.
+Nach erfolgreicher Ausführung aller Verfahren ist dann im Ordner \texttt{result/} eine Textdatei (Name
+siehe Konsole) mit den Ergebnissen und zugehörigen Parametern verfügbar.
+
+%Benutzung: Github, Parameter Kommandozeile etc.
+%korrekte Berechnung <-> Std.algor., funktion nearlyEqual
+
+\subsection{Performancemessung und -vergleich}
+% kleine, mittlere und große Matrizen
+
+\subsection{Einfluss der Blockgröße auf Verfahren 2}
+
+
 
 \section{Zusammenfassung}
 % AVX 512, AVX 2... aber prozessorspez.
@@ -256,6 +307,8 @@ korrekte Berechnung <-> Std.algor., funktion nearlyEqual
 
 \bibitem{ghub} \url{https://github.com/matthiastz/FSP-Matrixmultiplikation}, März 2017
 \bibitem{intr} \url{https://software.intel.com/sites/landingpage/IntrinsicsGuide}, März 2017
+\bibitem{atlas} \url{http://math-atlas.sourceforge.net}, März 2017
+\bibitem{blasqr} \url{http://www.netlib.org/blas/blasqr.pdf}, März 2017
 
 \end{thebibliography}
 

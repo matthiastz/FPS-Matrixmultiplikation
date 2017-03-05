@@ -43,7 +43,10 @@ int main(int argc, const char **argv) {
         printf("> ERROR! dimension N (%d) has to be: N mod %d == 0\n",N,AVX_VECTOR_SIZE);
         return EXIT_FAILURE;
     } else if (BS % AVX_VECTOR_SIZE != 0) {
-        printf("> ERROR! block size BS (%d) has to be: BS mod %d == 0\n",N,AVX_VECTOR_SIZE);
+        printf("> ERROR! block size BS (%d) has to be: BS mod %d == 0\n",BS,AVX_VECTOR_SIZE);
+        return EXIT_FAILURE;
+    } else if (REPETITIONS <= 0) {
+        printf("> ERROR! REPETITIONS (%d) has to be > 0 \n",REPETITIONS);
         return EXIT_FAILURE;
     }
     printHeader(N, BS, REPETITIONS);
