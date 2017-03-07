@@ -26,7 +26,7 @@ int main(int argc, const char **argv) {
 
     // arguments from command line, a.out = argv[0]
     unsigned int N = (unsigned int) atoi(argv[1]); // dimension (N x N)
-    int BS = atoi(argv[2]); // block size
+    unsigned int BS = (unsigned int) atoi(argv[2]); // block size
     int REPETITIONS = atoi(argv[3]);
 
     printf("cmd args: %d %d %d\n",N,BS,REPETITIONS);
@@ -42,10 +42,12 @@ int main(int argc, const char **argv) {
     if (N % AVX_VECTOR_SIZE != 0 || N < AVX_VECTOR_SIZE) {
         printf("> ERROR! dimension N (%d) has to be: N mod %d == 0\n",N,AVX_VECTOR_SIZE);
         return EXIT_FAILURE;
-    } else if (BS % AVX_VECTOR_SIZE != 0) {
-        printf("> ERROR! block size BS (%d) has to be: BS mod %d == 0\n",BS,AVX_VECTOR_SIZE);
+    }
+    else if (BS % 2 != 0 || BS < 2 || BS > N) {
+        printf("> ERROR! block size BS (%d) has to be: BS mod 2 == 0\n && <= N",BS);
         return EXIT_FAILURE;
-    } else if (REPETITIONS <= 0) {
+    }
+    else if (REPETITIONS <= 0) {
         printf("> ERROR! REPETITIONS (%d) has to be > 0 \n",REPETITIONS);
         return EXIT_FAILURE;
     }

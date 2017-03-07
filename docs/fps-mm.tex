@@ -278,26 +278,60 @@ der Form $C\,= A \cdot B$.
 %bezug main ... wiederholungen, etc
 
 Das Benchmarkprogramm wurde im Rahmen der \texttt{main()}-Funktion umgesetzt,
-der Code ist so aufgebaut, dass jedes Verfahren (1-4) R-mal ausgeführt wird
+der Code ist so aufgebaut, dass jedes Verfahren (1-4) R$\times$ ausgeführt wird
 und aus der benötigten Zeit der Durschnitt gebildet wird. Die notwendigen Parameter
 (Matrixgröße, Blockgröße, Wiederholungsanzahl) müssen direkt über die Kommandozeile übergeben werden.
 Eine Ausführung mit $N = 1024, BS = 8, R = 5$ sieht dann so aus: \texttt{./a.out 1024 8 5}.
 \newline
 
+Um sicherzustellen, dass die Berechnungen der einzelnen Verfahren das gleiche Ergebnis
+liefern, wird die Hilfsfunktion \texttt{compareResultMatrices\_f()} eingesetzt, die
+die Werte der konkreten Ergebnismatrix mit denen vom Standardalgorithmus vergleicht.
 Hier nocheinmal der Hinweis, dass primär der Nutzer für korrekte Eingaben verantwortlich ist, 
 grob falsche numerische Werte werden jedoch abgefangen.
 Nach erfolgreicher Ausführung aller Verfahren ist dann im Ordner \texttt{result/} eine Textdatei (Name
-siehe Konsole) mit den Ergebnissen und zugehörigen Parametern verfügbar.
+siehe Konsole) mit den Ergebnissen und zugehörigen Parametern verfügbar. \newline
 
-
-
-%korrekte Berechnung <-> Std.algor., funktion nearlyEqual
-
-
+Als Testsystem kam ein Intel i5-3570K $@$ 3.40GHz zum Einsatz, bei der
+Kompilierung des Programms mit dem \texttt{gcc} wurde das Optimierungslevel \texttt{-O2} verwendet.
+Jedes Verfahren wird für die unterschiedlichen
+Parameter $10 \times$ ausgeführt und aus der benötigten Zeit wurde dann der
+Durchschnitt gebildet.
 
 
 \subsection{Performancemessung und -vergleich}
+Es folgen nun die konkreten Messwerte als tabellarische Übersicht.
+Für das Cache-optimierte Verfahren wurde jeweils eine feste Blockgröße von $8$ gewählt,
+da sich mit diesem Wert eine günstige Rechenzeit ergeben hat.
+Im Tabellenkopf ist die jeweils getestete Matrixgröße \texttt{N} abgebildet, in den Spalten
+befindet sich die durchschnittlich benötigte Zeit und der Speedup des jeweiligen
+Verfahrens in Relation zum Standardalgorithmus.\newline
+
 % kleine, mittlere und große Matrizen
+
+
+\begin{tabular}{| l | l || l || l || l |}
+\hline
+N $\diagdown$ Verf. & Std.algor. & Cache-opt. & Parallel (AVX) & BLAS  \\ \hline
+
+64 & 0.474 (ms) & 0.534 (ms) | 0.89$\times$ & 0.177 (ms) | 2.68$\times$ & 0.092 (ms) | 5.15$\times$  \\ \hline
+
+128 & 3.962 (ms) & 3.418 (ms) | 1.16$\times$ & 1.186 (ms) | 3.34$\times$ & 0.427 (ms) | 9.27$\times$  \\ \hline
+512 & 0.199 (s) & 0.129 (s) | 1.54$\times$ & 0.068 (s) | 2.94$\times$ & 0.013 (s) | 15.9$\times$  \\ \hline
+1024 & 2.078 (s) &  1.074 (s) | 1.94$\times$ & 0.670 (s) | 3.10$\times$ & 0.094 (s) | 21.9$\times$ \\ \hline
+2048 & 53.91 (s) & 10.10 (s) | 5.34$\times$ & 10.48 (s) | 5.14$\times$ & 0.743 (s) | 72.5$\times$ \\ \hline
+ 
+		 			
+
+\end{tabular}\newline
+
+% Auswertung???
+
+% Cache anfangs (kleine M.) nicht so gut, holt aber später auf, überholt AVX (2048)
+% für kleine Matrizen AVX verh. (2x) nah an BLAS, je größer matrix desto deutlicher unterschied
+% von BLAS zu restlichen Verfahren
+
+
 
 \subsection{Einfluss der Blockgröße auf Verfahren 2}
 
