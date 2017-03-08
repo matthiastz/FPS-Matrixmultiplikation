@@ -11,6 +11,7 @@
 \usepackage{hyperref}
 \usepackage{amssymb} % mathbb
 \usepackage{amsmath}% http://ctan.org/pkg/amsmath
+\usepackage{hhline}
 
 \newcommand{\zB}{\mbox{z.\,B.}\xspace}
 \newcommand{\bspw}{\mbox{bspw.}\xspace}
@@ -303,8 +304,8 @@ Durchschnitt gebildet.
 Es folgen nun die konkreten Messwerte als tabellarische Übersicht.
 Für das Cache-optimierte Verfahren wurde jeweils eine feste Blockgröße von $8$ gewählt,
 da sich mit diesem Wert eine günstige Rechenzeit ergeben hat.
-Im Tabellenkopf ist die jeweils getestete Matrixgröße \texttt{N} abgebildet, in den Spalten
-befindet sich die durchschnittlich benötigte Zeit und der Speedup des jeweiligen
+In der ersten Spalte ist die jeweils getestete Matrixgröße \texttt{N} abgebildet, 
+die restlichen Spalten beinhalten die durchschnittlich benötigte Zeit und den Speedup des jeweiligen
 Verfahrens in Relation zum Standardalgorithmus.\newline
 
 % kleine, mittlere und große Matrizen
@@ -314,31 +315,85 @@ Verfahrens in Relation zum Standardalgorithmus.\newline
 \hline
 N $\diagdown$ Verf. & Std.algor. & Cache-opt. & Parallel (AVX) & BLAS  \\ \hline
 
-64 & 0.474 (ms) & 0.534 (ms) | 0.89$\times$ & 0.177 (ms) | 2.68$\times$ & 0.092 (ms) | 5.15$\times$  \\ \hline
-
-128 & 3.962 (ms) & 3.418 (ms) | 1.16$\times$ & 1.186 (ms) | 3.34$\times$ & 0.427 (ms) | 9.27$\times$  \\ \hline
-512 & 0.199 (s) & 0.129 (s) | 1.54$\times$ & 0.068 (s) | 2.94$\times$ & 0.013 (s) | 15.9$\times$  \\ \hline
-1024 & 2.078 (s) &  1.074 (s) | 1.94$\times$ & 0.670 (s) | 3.10$\times$ & 0.094 (s) | 21.9$\times$ \\ \hline
-2048 & 53.91 (s) & 10.10 (s) | 5.34$\times$ & 10.48 (s) | 5.14$\times$ & 0.743 (s) | 72.5$\times$ \\ \hline
+64 & 0.474 ms & 0.534 ms | 0.89$\times$ & 0.177 ms | 2.68$\times$ & 0.092 ms | 5.15$\times$  \\ \hline
+128 & 3.962 ms & 3.418 ms | 1.16$\times$ & 1.186 ms | 3.34$\times$ & 0.427 ms | 9.27$\times$  \\ \hline 
+\hline
+512 & 0.199 s & 0.129 s | 1.54$\times$ & 0.068 s | 2.94$\times$ & 0.013 s | 15.9$\times$  \\ \hline
+1024 & 2.078 s &  1.074 s | 1.94$\times$ & 0.670 s | 3.10$\times$ & 0.094 s | 21.9$\times$ \\ \hline
+2048 & 53.91 s & 10.10 s | 5.34$\times$ & 10.48 s | 5.14$\times$ & 0.743 s | 72.5$\times$ \\ \hline
  
-		 			
-
 \end{tabular}\newline
 
 % Auswertung???
+Wie zu erwarten liefert der Standardalgorithmus \iAllg die schlechteste Laufzeit aller 
+Verfahren und die BLAS-Bibliothek deutlich die beste Performance.
+Eine Ausnahme gilt für $N=64$, dort ist die langsamste Technik der Cache-optimierte
+Algorithmus, was wohl daran liegt, das für solch kleine Matrizen das Loop tiling mehr
+Overhead als tatsächlichen Nutzen erbringt.\newline
 
-% Cache anfangs (kleine M.) nicht so gut, holt aber später auf, überholt AVX (2048)
-% für kleine Matrizen AVX verh. (2x) nah an BLAS, je größer matrix desto deutlicher unterschied
-% von BLAS zu restlichen Verfahren
+Der Algorithmus mittels AVX ist für kleine und mittelgroße ($64-512$) Matrizen sehr gut
+geeignet, im Vergleich zu Verfahren 1/2 werden deutlich bessere Zeiten erzielt
+($\approx 3\times$).
+Das Cache-optimierte Verfahren verbessert die benötigte Laufzeit mit wachsendem \texttt{N}
+und erreicht bei $N=2048$ ein besseres Ergebnis als AVX.
+Für kleine Matrizen ist zumindest das AVX-Verfahren noch in grober Nähe von BLAS,
+jedoch verbessert sich der BLAS-Speedup mit steigender Matrixgröße im Verhältnis
+zu Verfahren 2/3 sehr stark, das Optimierungspotenzial nimmt wohl auch mit der Matrixgröße zu.
+\newline
+
+Es wurden keine $N>2048$ betrachtet, da bereits für $N=2048$
+der Standardalgorithmus eine relativ lange Rechenzeit benötigt, vor allem wenn weiterhin mehrere
+Durchläufe zum Mitteln des Ergebnisses eingesetzt werden.
 
 
 
-\subsection{Einfluss der Blockgröße auf Verfahren 2}
+\subsection{Einfluss der Blockgröße}
+% auf Verfahren 2 (cache opt.)
+% tabelle: N, BS …
 
+\begin{tabular}{| l | l | l | l | l | l |}
+\hline
+N $\diagdown$ BS & 4 & 8 & 16 & 32 & 64  \\ \hline
+
+
+256 & 18.18 (ms) & 14.66 (ms) & 13.76 (ms) & 13.85 (ms) & 18.35 (ms)  \\ \hline
+512 & 0.153 (s) & 0.118 (s) & 0.112 (s) & 0.135 (s) & 0.144 (s)  \\ \hline
+1024 & 1.248 (s) & 1.022 (s) & 1.069 (s) & 1.249 (s) & 1.414 (s)  \\ \hline
+2048 & 19.54 (s) & 10.02 (s) & 9.907 (s) & 11.62 (s) & 14.36 (s)  \\ \hline
+ 
+\end{tabular}\newline
+
+
+% float: storage size: 4 byte
+
+% BS=4: 4*4*4 = 64 B
+% BS=8: 8*8*4 = 256 B
+% BS=16: 16*16*4 = 1024 B
+% BS=32: 32*32*4 =  4096 B
+% BS=64: 64*64*4 = 16384 B
+% BS=128: 128*128*4 = 65.536 B 
+% BS=256: 256*256*4 = 262.144 B
+
+% blocking bis auf kleinste stufe (2,4) macht wenig sinn, matrizen zwar klein, aber kein 
+% performance gewinn mehr... selbst 8*8 oder 16*16 passen in l1 cache und lassen sich effizient
+% verarbeiten
+
+% blocking erst ab 128 sinnvoll, siehe Tabelle oben, bei N=64 sogar langsamer als std.algor
+
+% BS <= 256 : eher nicht sinnvoll, kein nennenswerter performance gewinn, matrizen so klein,
+% dass diese bereits ohne blocking schon in cpu cache passen
 
 
 \section{Zusammenfassung}
+% vergleich zwischen cache <-> avx, kombination sinnvoll, cache/blocking evtl mehrfach
+% BLAS nonplusultra, wiki: erklärung optimierungen  (interne impl.)
 % AVX 512, AVX 2... aber prozessorspez.
+
+% einzelne verfahren würden sich ggf. noch weiter optimieren lassen
+% von BLAS zu restlichen Verfahren
+% BLAS allg. weit entfernt von anderen verfahren, war aber zu erwarten
+
+% parallel: mehrere kerne …
 
 \section{Quellen}
 \begin{thebibliography}{9}
