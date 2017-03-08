@@ -300,7 +300,7 @@ Parameter $10 \times$ ausgeführt und aus der benötigten Zeit wurde dann der
 Durchschnitt gebildet.
 
 
-\subsection{Performancemessung und -vergleich}
+\subsection{Performancemessung und -vergleich}\label{chp:Bench1}
 Es folgen nun die konkreten Messwerte als tabellarische Übersicht.
 Für das Cache-optimierte Verfahren wurde jeweils eine feste Blockgröße von $8$ gewählt,
 da sich mit diesem Wert eine günstige Rechenzeit ergeben hat.
@@ -346,54 +346,64 @@ der Standardalgorithmus eine relativ lange Rechenzeit benötigt, vor allem wenn 
 Durchläufe zum Mitteln des Ergebnisses eingesetzt werden.
 
 
-
-\subsection{Einfluss der Blockgröße}
+\subsection{Einfluss der Blockgröße}\label{chp:BS}
 % auf Verfahren 2 (cache opt.)
 % tabelle: N, BS …
+
+Für das Cache-optimierte Verfahren sollte der Einfluss der Blockgröße auf die Laufzeit
+untersucht werden. Grundsätzlich machen natürlich nur Blockgrößen (BS): $BS \leq N$
+Sinn, damit die Matrizen auch tatsächlich in kleinere Blöcke unterteilt werden.
+Die Tabelle zeigt die Messwerte für verschiedene Matrixgrößen \texttt{N} (erste Spalte)
+und mehrere \texttt{BS} (restliche Spalten), für die gilt: $BS \ll N$.\newline
 
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 N $\diagdown$ BS & 4 & 8 & 16 & 32 & 64  \\ \hline
 
-
-256 & 18.18 (ms) & 14.66 (ms) & 13.76 (ms) & 13.85 (ms) & 18.35 (ms)  \\ \hline
-512 & 0.153 (s) & 0.118 (s) & 0.112 (s) & 0.135 (s) & 0.144 (s)  \\ \hline
-1024 & 1.248 (s) & 1.022 (s) & 1.069 (s) & 1.249 (s) & 1.414 (s)  \\ \hline
-2048 & 19.54 (s) & 10.02 (s) & 9.907 (s) & 11.62 (s) & 14.36 (s)  \\ \hline
- 
+256 & 18.18 (ms) & 14.66 (ms) & \textbf{13.76 (ms)} & 13.85 (ms) & 18.35 (ms)  \\ \hline
+512 & 0.153 (s) & 0.118 (s) & \textbf{0.112 (s)} & 0.135 (s) & 0.144 (s)  \\ \hline
+1024 & 1.248 (s) & \textbf{1.022 (s)} & 1.069 (s) & 1.249 (s) & 1.414 (s)  \\ \hline
+2048 & 19.54 (s) & 10.02 (s) & \textbf{9.907 (s)} & 11.62 (s) & 14.36 (s)  \\ \hline
 \end{tabular}\newline
 
+Es ist erkennbar, dass die Bestzeiten mit Blockgrößen von 8 \bzw 16 erreicht werden.
+Matrizen dieser Dimension passen auch problemlos in den L1-Cache der eingesetzten CPU
+und können daher theoretisch sehr effizient im Rechenprozess verarbeitet werden.
+Interressant ist der Fall $N=2048$, die Entscheidung zwischen $BS=4$ und $BS=8$
+sorgt für einen Speedup von $\approx 2\times$ ($4\rightarrow8$).\newline
 
-% float: storage size: 4 byte
-
-% BS=4: 4*4*4 = 64 B
-% BS=8: 8*8*4 = 256 B
-% BS=16: 16*16*4 = 1024 B
-% BS=32: 32*32*4 =  4096 B
-% BS=64: 64*64*4 = 16384 B
-% BS=128: 128*128*4 = 65.536 B 
-% BS=256: 256*256*4 = 262.144 B
-
-% blocking bis auf kleinste stufe (2,4) macht wenig sinn, matrizen zwar klein, aber kein 
-% performance gewinn mehr... selbst 8*8 oder 16*16 passen in l1 cache und lassen sich effizient
-% verarbeiten
-
-% blocking erst ab 128 sinnvoll, siehe Tabelle oben, bei N=64 sogar langsamer als std.algor
-
-% BS <= 256 : eher nicht sinnvoll, kein nennenswerter performance gewinn, matrizen so klein,
-% dass diese bereits ohne blocking schon in cpu cache passen
-
+Das Blocking\footnote{Das Aufteilen der Gesamtmatrix in kleinere Teilmatrizen} macht für
+sehr kleine Stufen ($BS=1,2,4$)  wenig Sinn, die Matrizen sind dann zwar klein, aber
+einen Performance-Gewinn erreicht man dadurch nicht. Daher ist es auch nicht besonders sinnvoll,
+kleine Matrizen (\zB $32,64$) überhaupt weiter zu unterteilen, da diese bereits ohne Blocking
+im L1-Cache unterkommen können. Wie man auch für $N=64$ gesehen hat \ref{chp:Bench1}, 
+entsteht für kleine 
+Matrizen durch das Cache-optimierte Verfahren zu viel Overhead und selbst der
+Standardalgorithmus läuft schneller.
 
 \section{Zusammenfassung}
+Sowohl das Cache-optimierte, als auch das parallele Verfahren, konnten beide
+im Vergleich zum konventionellen Algorithmus teils deutliche Verbesserungen verzeichnen.
+Die beiden Verfahren ließen sich sicherlich noch weiter optimieren, \bspw
+kann mit AVX-512 die Vectorbreite auf 512 bit erweitert werden, jedoch ist die
+CPU-Liste mit AVX-512-Support noch ziemlich kurz. Desweiteren wird bei den bisherigen Verfahren
+die Berechnung nicht auf ungenutzte CPU-Kerne verteilt, denkbar und sinnvoll könnte
+deshalb eine Lastverteilung \zB mit OpenMP sein.\newline
+ 
+Die Feststellung, dass AVX für kleine Matrizen besonders gut geeignet ist und 
+Loop tiling für sehr kleine Blockgrößen nicht sinnvoll ist, lässt die Vermutung zu,
+dass eine Kombination aus den beiden Verfahren eine weitere Optimierungsmöglichkeit 
+bietet. So könnte durch das Blocking die konkrete Matrix auf einen sinnvollen Wert verkleinert
+werden \ref{chp:BS} und auf den Teilmatrizen dann die parallele Berechnung mit AVX vollzogen werden.
+
+% TODO: blas: verfahren …
+
 % vergleich zwischen cache <-> avx, kombination sinnvoll, cache/blocking evtl mehrfach
 % BLAS nonplusultra, wiki: erklärung optimierungen  (interne impl.)
-% AVX 512, AVX 2... aber prozessorspez.
-
-% einzelne verfahren würden sich ggf. noch weiter optimieren lassen
 % von BLAS zu restlichen Verfahren
 % BLAS allg. weit entfernt von anderen verfahren, war aber zu erwarten
 
-% parallel: mehrere kerne …
+
 
 \section{Quellen}
 \begin{thebibliography}{9}
