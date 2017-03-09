@@ -10,18 +10,12 @@ char* RESULT_FOLDER_PATH = "results/";
 struct stat ST = {0};
 
 
-// TODO: write docu for command line arguments (% 8)
-
 int main(int argc, const char **argv) {
-
-    // TODO: 2er Potenzen meint benedikt (512, 1024, 2048) -> #define?
-    // TODO: auch kleine matrix größen betrachten! -> bezug L1-, L2-cache
-
 
     // VARIABLES
 
     clock_t start, end; // measure time
-    bool calc_correct[3] = {false, false, false}; // correct calculations?
+    bool calc_correct[3] = {false, false, false}; // correct calculations? (cache, avx, blas)
     double overall_times[4] = {0,0,0,0}; // save different overall times in array
 
     // arguments from command line, a.out = argv[0]
@@ -67,7 +61,7 @@ int main(int argc, const char **argv) {
         standardMatrixMul_f(m1_f, m2_f, result_f, N);
         end = clock();
 
-        // copy values from other matrix
+        // copy values from other matrix (later: comparison)
         if (i == 0) {
             for (unsigned int j = 0; j < N; ++j) {
                 for (unsigned int k = 0; k < N; ++k) {
@@ -118,18 +112,18 @@ int main(int argc, const char **argv) {
     }
 
 
-    // CBLAS (ATLAS)
+    // BLAS (ATLAS)
 
     printf("executing multiplications using BLAS …\n");
     float ALPHA = 1;
     float BETA = 0;
 
-    //  These parameters are different that those for pure Fortran
+    // matrix dimensions
     int LDA=N;
     int LDB=N;
     int LDC=N;
 
-    /* Single Precision, General Matrix Multiplication */
+    // Single Precision, General Matrix Multiplication
     for (int i = 0; i < REPETITIONS; ++i) {
         float* result_cblas_f = calloc(N * N, sizeof (float));
 
@@ -152,12 +146,6 @@ int main(int argc, const char **argv) {
     free(m1_f);
     free(m2_f);
     free(stdAlgorithm_F);
-
-
-    // TODO: diagram matrix größe - ausführungszeit
-    // diagramm blocksize by cache optimierung
-    // mehrfach ausführen, durchschnitt
-
 
     // === FILE OUTPUT ===================================================================
 

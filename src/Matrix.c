@@ -19,7 +19,6 @@
 float* createRandomizedMatrix_f(int N) {
     float value;
 
-    // TODO: think we could need some testing here?
     float* result = malloc(N * N * sizeof (float));
 
     for (int i = 0; i < N; ++i) {
@@ -40,7 +39,7 @@ bool compareResultMatrices_f(float* stdAlgorithm, float* a, int N) {
 
             if (!(nearlyEqual(stdAlgorithm[(N * i) + j],
                               a[(N * i) + j], COMPARE_EPSILON))) {
-                // TODO: remove printf line
+
                 printf("false! : %f -- %f\n",stdAlgorithm[(N * i) + j],
                        a[(N * i) + j]);
                 return false;
@@ -98,7 +97,7 @@ int optimizedMatrixMul_f(float* a, float* b, float* result, int N, int blockSize
         for (int j = 0; j < N; j += BLOCK) {
             for (int k = 0; k < N; k += BLOCK) {
 
-                /* Regular multiply inside the tiles */
+                // Regular multiply inside the blocks
                 for (int y = i; y < i + BLOCK; y++) {
                     for (int x = j; x < j + BLOCK; x++) {
 
@@ -151,7 +150,6 @@ int parallelMatrixMul_AVX_f(float* a, float* b, float* result, int N) {
             }
         }
     }
-
     // TODO:
     return 0;
 }
