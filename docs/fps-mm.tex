@@ -96,26 +96,26 @@ Bachelor Informatik, 5.~Fachsemester
 
 \section{Einleitung}\label{chp:Einleitung}
 Matrix-Algorithmen finden in einer Vielzahl verschiedener Bereiche Anwendung.
-So werden \bspw in der linearen Algebra häufig Matrizen eingesetzt um linearere Gleichungssysteme oder Eigenwertprobleme zu lösen. Im Kontext linearer Abbildungen lassen sich geometrische Transformationen
-durch Matrizenprodukte abbilden, was als Grundlage für die Computergrafik zur Realisierung von Koordinatentransformationenen dient.\newline
+So werden \bspw in der linearen Algebra häufig Matrizen eingesetzt, um lineare Gleichungssysteme oder Eigenwertprobleme zu lösen. Im Kontext linearer Abbildungen lassen sich geometrische Transformationen
+durch Matrizenprodukte abbilden, was als Grundlage für die Computergrafik zur Realisierung von Koordinatentransformationen dient.\newline
 
 Der naive Standardalgorithmus zur Matrixmultiplikation 
 $C\,= A \cdot B$ mit $A \in \mathbb{R}^{l \times m}$, $B \in \mathbb{R}^{m \times n}$,
 $C \in \mathbb{R}^{l \times n}$ verfügt über eine kubische Laufzeit, für jedes Element $c$ der 
-Ergebnismatrix $C$ müssen die Werte eines Zeilenvectors von $A$ mit den Werten eines Spaltenvectors
+Ergebnismatrix $C$ müssen die Werte eines Zeilenvektors von $A$ mit den Werten eines Spaltenvektors
 von $B$ schrittweise multipliziert und in $c$ aufsummiert werden. Die Ergebnismatrix $C$
 hat die Dimensionen $l \times n$ und für jedes Element aus $C$ entsteht ein linearer Aufwand
 $m \Rightarrow$ $\mathcal{O}(m \cdot l \cdot n)$.\newline
 
 Der Algorithmus ist also einfach aufgebaut, es finden nur mathematisch grundlegende Operationen
 (Multiplikation, Addition) statt, jedoch in einer großen Anzahl. 
-Desweiteren werden die Werte aus
+Des Weiteren werden die Werte aus
 den Ausgangsmatrizen mehrfach verwendet, um \bspw die erste Zeile der Ergebnismatrix $C$ zu berechnen,
-benötigen wir für jedes einzelne Element $c$ den gleichen Zeilenvector aus $A$, das gilt für die
-Spaltenvectoren von $B$ analog.\newline
+benötigen wir für jedes einzelne Element $c$ den gleichen Zeilenvektor aus $A$, das gilt für die
+Spaltenvektoren von $B$ analog.\newline
 
 Aus den genannten Gründen ergibt sich das Potenzial, das Vorgehen bei der Matrixmultiplikation
-zu verbessern. So könnte man die for()-Schleifen so umstrukturieren, dass man diese in kleinere
+zu verbessern. So könnte man die \texttt{for()}-Schleifen so umstrukturieren, dass man diese in kleinere
 Iterationsblöcke aufteilt und damit vom Lokalitätsprinzip Gebrauch macht. Ein weiterer Ansatz wäre
 ein paralleles Verfahren, um den Zeitaufwand zu minimieren, in dem mehrere Operationen in einem
 Schritt ausgeführt werden.
@@ -131,7 +131,7 @@ Zu Beginn der Implementierung hatte ich für die Matrizen einen Datentyp als
 Code sollte auf das Notwendige reduziert sein. Daher werden die einzelnen 
 Matrizen einfach als float-Array umgesetzt. Zur Vereinfachung der verschiedenen
 Verfahren wurde eine Einschränkung auf quadratische Matrizen ($n \times n$) 
-und Parametergrößen für $n$ als Zweierpotenzen vorgenommen.\newline
+und Parametergrößen als Zweierpotenzen vorgenommen.\newline
 
 Mit dem Ziel der Optimierungen, wird auch bewusst auf einen guten Coding-Stil verzichtet,
 so werden in den performancerelevanten Bereichen unnötige Funktionsaufrufe oder Variablen vermieden, was einen schlechter lesbaren Code zur Folge hat. So wird \bspw anstatt einer
@@ -141,24 +141,24 @@ Hilfsfunktion zum Setzen eines Wertes in einer bestimmten Matrix
 direkt \texttt{result[(N * i) + j] = value;} verwendet.\newline
 
 Die Ausgangsmatrizen $A$ und $B$
-werden vor Benutzung in den verschiedenen Verfahren mit pseudo-zufälligen Werten initialisert
+werden vor Benutzung in den verschiedenen Verfahren mit pseudo-zufälligen Werten initialisiert
 (\texttt{float$*$ createRandomizedMatrix\_f(int N);}), da die konkreten Werte nicht von großer Bedeutung sind, sollte dieses Vorgehen ausreichend sein. Die Ergebnismatrizen werden außerhalb des eigentlichen
 Algorithmus mit Nullen initialisiert (\texttt{calloc()}). Das Repository \inkl einer kleinen
 Beschreibung ist auf GitHub \cite{ghub} frei verfügbar.
 
 
 \subsection{Standardalgorithmus}
-Der Standardalgorithmus birgt keine großen Überraschungen und wurde in Anlehnung auf die 
+Der Standardalgorithmus birgt keine großen Überraschungen und wurde in Anlehnung an die 
 Gleichung aus der Aufgabenstellung umgesetzt. In den beiden äußeren Schleifen 
 wird über die Zeilen und Spalten der Ergebnismatrix \texttt{result} iteriert,
 in der innersten Schleife wird dann die Produktsumme der Eingangsmatrizen (\texttt{a, b}) in der
 Variable \texttt{calc} gebildet und der Wert anschließend gespeichert.
-Einzige Optimierung ist hierbei der direkte Zugriff per Index auf die Matrizen.
+Die einzige Optimierung ist hierbei der direkte Zugriff per Index auf die Matrizen.
 
 \lstinputlisting[language=C]{code/std.c}
 
 \subsection{Cache-optimiertes Verfahren}
-Bei dem Cache-optimiertes Verfahren fand die Umsetzung mittels \emph{Loop tiling} statt,
+Bei dem Cache-optimierten Verfahren fand die Umsetzung mittels \emph{Loop tiling} statt,
 wodurch die Ausführung der Schleifen effizienter wird. Das Loop tiling gliedert die 
 Matrizen in kleinere Blöcke, auf denen die Matrixmultiplikation durchgeführt wird.
 Dadurch verbleiben Daten, die bald wieder verwendet werden, im schnellen Hauptspeicher der 
@@ -166,12 +166,12 @@ CPU (Cache). \newpage
 
 \lstinputlisting[language=C]{code/block.c}
 
-Die Funktionssignatur besteht nun neben den bekannten Matrizen \texttt{a, b} und \texttt{result}
+Die Funktionssignatur besteht nun neben den bekannten Matrizen \texttt{a, b, result}
 und der Dimension \texttt{N} nun noch zusätzlich aus einem Parameter \texttt{BS} für 
 die Blockgröße, in die die Matrizen unterteilt werden sollen.\newline
 
 In den äußeren drei Schleifen (Zeile 4-6) wird dafür gesorgt, dass der korrekte Offset eingehalten wird,
-sodass anstatt direkt über die komplette Dimension \texttt{N} der Matrizen zu iterieren, nur auf den
+sodass, anstatt direkt über die komplette Dimension \texttt{N} der Matrizen zu iterieren, nur auf den
 kleinen Blöcken der Größe \texttt{BLOCK} gearbeitet wird. Daher gilt zu beachten, dass die Indexvariablen
 \texttt{i,~j} und \texttt{k} nicht einfach inkrementiert werden wie bei herkömmlichen Schleifen,
 sondern um den Offset-Wert \texttt{BLOCK} erhöht werden. Daher auch die Forderung, dass 
@@ -187,11 +187,11 @@ Schleifenabbruchbedingung die Berechnungen auf Matrizen der Größe \texttt{BLOC
 Wie bereits in der Einleitung~\ref{chp:Einleitung} erwähnt, ist für die 
 Matrizenmultiplikation eine große Anzahl gleichartiger Rechenoperationen notwendig.
 Daher ergibt sich die Möglichkeit, diese Eigenschaft der Parallelisierbarkeit auszunutzen,
-also mehrere Daten quasi-parallel zu bearbeiten.\newline
+also mehrere Daten quasi-parallel zu verarbeiten.\newline
 
 Um dieses Vorhaben umzusetzen, bieten sich die Advanced Vector Extensions (AVX) an,
-welche eine Befehlssatz-Erweiterung für Mikroprozessoren darstellt. Diese Prozessoren
-verfügen über SIMD-Erweiterungen (Register, Instruktionen), die es ermöglichen mit einem Befehlsaufruf  mehrere einheitliche Datensätze parallel zu verarbeiten. Um diese Funktionalitäten auf 
+welche eine Befehlssatz-Erweiterung für Mikroprozessoren darstellen. Diese Prozessoren
+verfügen über SIMD-Erweiterungen (Register, Instruktionen), die es ermöglichen, mit einem Befehlsaufruf  mehrere einheitliche Datensätze parallel zu verarbeiten. Um diese Funktionalitäten auf 
 Hochsprachen-Ebene zu verwenden, können mithilfe von intrinsischen Funktionen 
 die prozessorspezifischen Befehle als normale Funktionsaufrufe abstrahiert werden,
 Unterstützung dafür bieten verschiedene Compiler. Eine gute Übersicht über die sogenannten
@@ -200,7 +200,7 @@ Unterstützung dafür bieten verschiedene Compiler. Eine gute Übersicht über d
 Die relevanten Funktionen, um die Matrixmultiplikation mithilfe von AVX umzusetzen,
 umfassen mindestens die Möglichkeiten Werte aus einer Matrix laden/speichern
 und Additionen/Multiplikationen ausführen zu können. Da die bisherigen Matrizen auch auf 
-float-Werten basieren, kommen für die Berechnungen float-Vectoren (\texttt{\_\_m256}) zum
+float-Werten basieren, kommen für die Berechnungen float-Vektoren (\texttt{\_\_m256}) zum
 Einsatz, welche eine Kapazität von 256 Bit bereitstellen und damit 8 floats speichern
 können. Hier eine Übersicht über die in meiner Implementierung benutzten Funktionen:\newline
 
@@ -208,21 +208,21 @@ können. Hier eine Übersicht über die in meiner Implementierung benutzten Funk
 \hline
 Name & Beschreibung \\ \hline
   
-\texttt{void \textbf{\_mm256\_storeu\_ps}} & speichert einen 256-bit-Vector \texttt{a} an der Stelle\\
+\texttt{void \textbf{\_mm256\_storeu\_ps}} & speichert einen 256-bit-Vektor \texttt{a} an der Stelle\\
 \texttt{(float$*$ mem\_addr, \_\_m256 a)} &  \texttt{mem\_addr} ab   \\ \hline
 
-\texttt{\_\_m256 \textbf{\_mm256\_add\_ps}} & addiert die Elemente der Vectoren \texttt{a} und 
+\texttt{\_\_m256 \textbf{\_mm256\_add\_ps}} & addiert die Elemente der Vektoren \texttt{a} und 
 \texttt{b} \\
-\texttt{(\_\_m256 a, \_\_m256 b)} & und gibt den Ergebnisvector zurück \\ \hline
+\texttt{(\_\_m256 a, \_\_m256 b)} & und gibt den Ergebnisvektor zurück \\ \hline
 
-\texttt{\_\_m256 \textbf{\_mm256\_mul\_ps}} & multipliziert die Elemente der Vectoren \texttt{a} und \texttt{b} \\
-\texttt{(\_\_m256 a, \_\_m256 b)} & und gibt den Ergebnisvector zurück \\ \hline
+\texttt{\_\_m256 \textbf{\_mm256\_mul\_ps}} & multipliziert die Elemente der Vektoren \texttt{a} und \texttt{b} \\
+\texttt{(\_\_m256 a, \_\_m256 b)} & und gibt den Ergebnisvektor zurück \\ \hline
 
-\texttt{\_\_m256 \textbf{\_mm256\_set1\_ps} (float a)} & erstellt einen Vector, dessen Elemente alle den 
+\texttt{\_\_m256 \textbf{\_mm256\_set1\_ps} (float a)} & erstellt einen Vektor, dessen Elemente alle den 
 \\
-& Wert aus \texttt{a} erhalten \\ \hline
+& Wert \texttt{a} erhalten \\ \hline
 
-\texttt{\_\_m256 \textbf{\_mm256\_loadu\_ps}} & lädt die Werte aus \texttt{mem\_addr} in einen Vector und \\
+\texttt{\_\_m256 \textbf{\_mm256\_loadu\_ps}} & lädt die Werte aus \texttt{mem\_addr} in einen Vektor und \\
 \texttt{(float const$*$ mem\_addr)} & gibt diesen zurück \\ \hline
 \end{tabular}\newline
 
@@ -232,23 +232,23 @@ Durch Einbinden des Headers \texttt{<immintrin.h>} stehen alle AVX-Funktionen be
 % Implementierung
 \lstinputlisting[language=C]{code/avx.c}
 In der Funktionssignatur tauchen wieder die drei bekannten Matrizen und die Dimension \texttt{N} auf.
-Für die Größe der Vectoren im AVX-Verfahren wurde eine globale Variable \texttt{AVX\_VECTOR\_SIZE} ($=8$)
+Für die Größe der Vektoren im AVX-Verfahren wurde eine globale Variable \texttt{AVX\_VECTOR\_SIZE} ($=8$)
 eingeführt, der Algorithmus für dieses Verfahren richtet sich direkt nach dieser Größeneinteilung.
-AVX bietet die Datenstruktur der Vectoren (\texttt{\_\_m256}, single-precision) und dafür definierte Funktionen an, wodurch (Rechen-)Operationen auf 8 Datensätzen gleichzeitig vollzogen werden können.
+AVX bietet die Datenstruktur der Vektoren (\texttt{\_\_m256}, single-precision) und dafür definierte Funktionen an, wodurch (Rechen-)Operationen auf 8 Datensätzen gleichzeitig vollzogen werden können.
 \newline
 
 Die äußerste Schleife (Zeile 4) dient zur Iteration über die Zeilen der Matrix \texttt{a}
-und zur Bestimmung der Position zum Speichern des Ergebnisvectors in \texttt{result}.
+und zur Bestimmung der Position zum Speichern des Ergebnisvektors in \texttt{result}.
 Um die Anzahl der notwendigen Zwischenberechnungen abzuspeichern, dient die Variable
 \texttt{calculation\_count}. Die Matrix \texttt{b} hat eine Spaltenzahl von \texttt{N},
-so lässt sich diese durch die Vectorlänge in \texttt{N}$/8$ einteilen, da die Werte aus 
-$8$ verschiedenen Spalten in einem Vector abgelegt werden.\newline
+so lässt sich diese durch die Vektorlänge in \texttt{N}$/8$ einteilen, da die Werte aus 
+$8$ verschiedenen Spalten in einem Vektor abgelegt werden.\newline
 
 Die Schleife in Zeile 7 iteriert nun über diese Einteilung und bestimmt die finale Position zum 
-Speichern des Ergebnisvectors. In der innersten Schleife (Zeile 11) findet nun die eigentliche
+Speichern des Ergebnisvektors. In der innersten Schleife (Zeile 11) findet nun die eigentliche
 Berechnung mittels AVX statt. Hier wird für Matrix \texttt{a} aus jeder einzelnen Spalte
 \texttt{k} (Einteilung \texttt{N})
-aus Zeile \texttt{i} ein broadcast-Vector\footnote{\texttt{\_\_m256 \_mm256\_set1\_ps (float a)}}
+aus Zeile \texttt{i} ein broadcast-Vektor\footnote{\texttt{\_\_m256 \_mm256\_set1\_ps (float a)}}
 erzeugt, da dieser eine float-Wert sowieso mit mehreren Werten aus Matrix \texttt{b} 
 (Zeile \texttt{k}) multipliziert werden muss, daher wird das direkt in einem Schritt erledigt
 und das Ergebnis anschließend an der Stelle \texttt{result\_address} aufsummiert.\newline
@@ -279,7 +279,7 @@ der Form $C\,= A \cdot B$.
 %bezug main ... wiederholungen, etc
 
 Das Benchmarkprogramm wurde im Rahmen der \texttt{main()}-Funktion umgesetzt,
-der Code ist so aufgebaut, dass jedes Verfahren (1-4) R$\times$ ausgeführt wird
+der Code ist so aufgebaut, dass jedes Verfahren mehrmals (R) ausgeführt 
 und aus der benötigten Zeit der Durschnitt gebildet wird. Die notwendigen Parameter
 (Matrixgröße, Blockgröße, Wiederholungsanzahl) müssen direkt über die Kommandozeile übergeben werden.
 Eine Ausführung mit $N = 1024, BS = 8, R = 5$ sieht dann so aus: \texttt{./a.out 1024 8 5}.
@@ -288,13 +288,13 @@ Eine Ausführung mit $N = 1024, BS = 8, R = 5$ sieht dann so aus: \texttt{./a.ou
 Um sicherzustellen, dass die Berechnungen der einzelnen Verfahren das gleiche Ergebnis
 liefern, wird die Hilfsfunktion \texttt{compareResultMatrices\_f()} eingesetzt, die
 die Werte der konkreten Ergebnismatrix mit denen vom Standardalgorithmus vergleicht.
-Hier nocheinmal der Hinweis, dass primär der Nutzer für korrekte Eingaben verantwortlich ist, 
+Hier noch einmal der Hinweis, dass primär der Nutzer für korrekte Eingaben verantwortlich ist, 
 grob falsche numerische Werte werden jedoch abgefangen.
 Nach erfolgreicher Ausführung aller Verfahren ist dann im Ordner \texttt{result/} eine Textdatei (Name
 siehe Konsole) mit den Ergebnissen und zugehörigen Parametern verfügbar. \newline
 
 Als Testsystem kam ein Intel i5-3570K $@$ 3.40GHz zum Einsatz, bei der
-Kompilierung des Programms mit dem \texttt{gcc} wurde das Optimierungslevel \texttt{-O2} verwendet.
+Kompilierung des Programms mit dem \texttt{gcc} wurde das Optimierungslevel \texttt{O2} verwendet.
 Jedes Verfahren wird für die unterschiedlichen
 Parameter $10 \times$ ausgeführt und aus der benötigten Zeit wurde dann der
 Durchschnitt gebildet.
@@ -306,11 +306,9 @@ Für das Cache-optimierte Verfahren wurde jeweils eine feste Blockgröße von $8
 da sich mit diesem Wert eine günstige Rechenzeit ergeben hat.
 In der ersten Spalte ist die jeweils getestete Matrixgröße \texttt{N} abgebildet, 
 die restlichen Spalten beinhalten die durchschnittlich benötigte Zeit und den Speedup des jeweiligen
-Verfahrens in Relation zum Standardalgorithmus.\newline
+Verfahrens in Relation zum Standardalgorithmus.
 
-% kleine, mittlere und große Matrizen
-
-
+\begin{center}
 \begin{tabular}{| l | l || l || l || l |}
 \hline
 N $\diagdown$ Verf. & Std.algor. & Cache-opt. & Parallel (AVX) & BLAS  \\ \hline
@@ -321,14 +319,13 @@ N $\diagdown$ Verf. & Std.algor. & Cache-opt. & Parallel (AVX) & BLAS  \\ \hline
 512 & 0.199 s & 0.129 s | 1.54$\times$ & 0.068 s | 2.94$\times$ & 0.013 s | 15.9$\times$  \\ \hline
 1024 & 2.078 s &  1.074 s | 1.94$\times$ & 0.670 s | 3.10$\times$ & 0.094 s | 21.9$\times$ \\ \hline
 2048 & 53.91 s & 10.10 s | 5.34$\times$ & 10.48 s | 5.14$\times$ & 0.743 s | 72.5$\times$ \\ \hline
- 
-\end{tabular}\newline
+\end{tabular}
+\end{center}
 
-% Auswertung???
 Wie zu erwarten liefert der Standardalgorithmus \iAllg die schlechteste Laufzeit aller 
 Verfahren und die BLAS-Bibliothek deutlich die beste Performance.
 Eine Ausnahme gilt für $N=64$, dort ist die langsamste Technik der Cache-optimierte
-Algorithmus, was wohl daran liegt, das für solch kleine Matrizen das Loop tiling mehr
+Algorithmus, was wohl daran liegt, dass für solch kleine Matrizen das Loop tiling mehr
 Overhead als tatsächlichen Nutzen erbringt.\newline
 
 Der Algorithmus mittels AVX ist für kleine und mittelgroße ($64-512$) Matrizen sehr gut
@@ -347,62 +344,63 @@ Durchläufe zum Mitteln des Ergebnisses eingesetzt werden.
 
 
 \subsection{Einfluss der Blockgröße}\label{chp:BS}
-% auf Verfahren 2 (cache opt.)
-% tabelle: N, BS …
-
 Für das Cache-optimierte Verfahren sollte der Einfluss der Blockgröße auf die Laufzeit
 untersucht werden. Grundsätzlich machen natürlich nur Blockgrößen (BS): $BS \leq N$
 Sinn, damit die Matrizen auch tatsächlich in kleinere Blöcke unterteilt werden.
 Die Tabelle zeigt die Messwerte für verschiedene Matrixgrößen \texttt{N} (erste Spalte)
-und mehrere \texttt{BS} (restliche Spalten), für die gilt: $BS \ll N$.\newline
+und mehrere \texttt{BS} (restliche Spalten), für die gilt: $BS \ll N$.
 
+\begin{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 N $\diagdown$ BS & 4 & 8 & 16 & 32 & 64  \\ \hline
 
-256 & 18.18 (ms) & 14.66 (ms) & \textbf{13.76 (ms)} & 13.85 (ms) & 18.35 (ms)  \\ \hline
-512 & 0.153 (s) & 0.118 (s) & \textbf{0.112 (s)} & 0.135 (s) & 0.144 (s)  \\ \hline
-1024 & 1.248 (s) & \textbf{1.022 (s)} & 1.069 (s) & 1.249 (s) & 1.414 (s)  \\ \hline
-2048 & 19.54 (s) & 10.02 (s) & \textbf{9.907 (s)} & 11.62 (s) & 14.36 (s)  \\ \hline
-\end{tabular}\newline
+256 & 18.18 ms & 14.66 ms & \textbf{13.76 ms} & 13.85 ms & 18.35 ms  \\ \hline
+512 & 0.153 s & 0.118 s & \textbf{0.112 s} & 0.135 s & 0.144 s  \\ \hline
+1024 & 1.248 s & \textbf{1.022 s} & 1.069 s & 1.249 s & 1.414 s  \\ \hline
+2048 & 19.54 s & 10.02 s & \textbf{9.907 s} & 11.62 s & 14.36 s  \\ \hline
+\end{tabular}
+\end{center}
 
 Es ist erkennbar, dass die Bestzeiten mit Blockgrößen von 8 \bzw 16 erreicht werden.
 Matrizen dieser Dimension passen auch problemlos in den L1-Cache der eingesetzten CPU
 und können daher theoretisch sehr effizient im Rechenprozess verarbeitet werden.
-Interressant ist der Fall $N=2048$, die Entscheidung zwischen $BS=4$ und $BS=8$
-sorgt für einen Speedup von $\approx 2\times$ ($4\rightarrow8$).\newline
+Interessant ist der Fall $N=2048$, die Entscheidung zwischen $BS=4$ und $BS=8$
+sorgt für einen Speedup von $\approx 2\times$ ($4\rightarrow8$), die Wahl einer
+passenden Blockgröße hat also großen Einfluss auf die Performance dieses Verfahrens.
+\newline
 
 Das Blocking\footnote{Das Aufteilen der Gesamtmatrix in kleinere Teilmatrizen} macht für
 sehr kleine Stufen ($BS=1,2,4$)  wenig Sinn, die Matrizen sind dann zwar klein, aber
 einen Performance-Gewinn erreicht man dadurch nicht. Daher ist es auch nicht besonders sinnvoll,
-kleine Matrizen (\zB $32,64$) überhaupt weiter zu unterteilen, da diese bereits ohne Blocking
+kleine Matrizen (\zB $32$) überhaupt weiter zu unterteilen, da diese bereits ohne Blocking
 im L1-Cache unterkommen können. Wie man auch für $N=64$ gesehen hat \ref{chp:Bench1}, 
 entsteht für kleine 
 Matrizen durch das Cache-optimierte Verfahren zu viel Overhead und selbst der
 Standardalgorithmus läuft schneller.
 
 \section{Zusammenfassung}
-Sowohl das Cache-optimierte, als auch das parallele Verfahren, konnten beide
+Sowohl das Cache-optimierte als auch das parallele Verfahren konnten beide
 im Vergleich zum konventionellen Algorithmus teils deutliche Verbesserungen verzeichnen.
 Die beiden Verfahren ließen sich sicherlich noch weiter optimieren, \bspw
-kann mit AVX-512 die Vectorbreite auf 512 bit erweitert werden, jedoch ist die
-CPU-Liste mit AVX-512-Support noch ziemlich kurz. Desweiteren wird bei den bisherigen Verfahren
+kann mit AVX-512 die Vektorbreite auf 512 bit erweitert werden, jedoch ist die
+CPU-Liste mit AVX-512-Support noch ziemlich kurz. Des Weiteren wird bei den bisherigen Verfahren
 die Berechnung nicht auf ungenutzte CPU-Kerne verteilt, denkbar und sinnvoll könnte
 deshalb eine Lastverteilung \zB mit OpenMP sein.\newline
  
+In Systemen, die mehrere Cache-Level unterstützen, kann das Blocking mehr als $1\times$ angewandt werden,
+um das Lokalitätsprinzip in der Speicherverwaltung weiter auszunutzen.
+Die Implementierung von ATLAS macht in einer sehr effizienten Weise vom Caching 
+und anderen Optimierungsmöglichkeiten\footnote{Automated Empirical Optimization of Software (AEOS):
+Parameterization, Multiple Implementation, Code Generation} Gebrauch, ein großer Vorteil
+liegt hier beim Autotuning -- so wird die Blockgröße und andere Parameter direkt für das 
+Ziel-System automatisch optimiert.\newline
+
 Die Feststellung, dass AVX für kleine Matrizen besonders gut geeignet ist und 
 Loop tiling für sehr kleine Blockgrößen nicht sinnvoll ist, lässt die Vermutung zu,
 dass eine Kombination aus den beiden Verfahren eine weitere Optimierungsmöglichkeit 
 bietet. So könnte durch das Blocking die konkrete Matrix auf einen sinnvollen Wert verkleinert
-werden \ref{chp:BS} und auf den Teilmatrizen dann die parallele Berechnung mit AVX vollzogen werden.
-
-% TODO: blas: verfahren …
-
-% vergleich zwischen cache <-> avx, kombination sinnvoll, cache/blocking evtl mehrfach
-% BLAS nonplusultra, wiki: erklärung optimierungen  (interne impl.)
-% von BLAS zu restlichen Verfahren
-% BLAS allg. weit entfernt von anderen verfahren, war aber zu erwarten
-
+ \ref{chp:BS} und auf den Teilmatrizen dann die parallele Berechnung mit AVX vollzogen werden.
 
 
 \section{Quellen}
