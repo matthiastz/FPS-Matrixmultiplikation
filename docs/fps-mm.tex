@@ -109,21 +109,27 @@ $m \Rightarrow$ $\mathcal{O}(m \cdot l \cdot n)$.\newline
 
 Der Algorithmus ist also einfach aufgebaut, es finden nur mathematisch grundlegende Operationen
 (Multiplikation, Addition) statt, jedoch in einer großen Anzahl. 
-Des Weiteren werden die Werte aus
-den Ausgangsmatrizen mehrfach verwendet, um \bspw die erste Zeile der Ergebnismatrix $C$ zu berechnen,
-benötigen wir für jedes einzelne Element $c$ den gleichen Zeilenvektor aus $A$, das gilt für die
-Spaltenvektoren von $B$ analog.\newline
+Des Weiteren müssen die Werte aus den Ausgangsmatrizen mehrfach verwendet werden, um \bspw die erste Zeile der Ergebnismatrix $C$ zu berechnen,
+benötigen wir für jedes einzelne Element $c$ den selben Zeilenvektor aus $A$, das gilt für die
+Spaltenvektoren von $B$ analog.
+Wenn die Datenzugriffe, wie beim Standardalgorithmus, also rein iterativ stattfinden,
+wird das Speicherverhalten ignoriert und damit \emph{Cache Misses}\footnote{Die zu lesenden oder
+schreibenden Daten liegen nicht im Cache, daher muss auf den Hauptspeicher zugegriffen werden.
+$\rightarrow$ größere Latenz}
+ in Kauf genommen. \newline
+
 
 Aus den genannten Gründen ergibt sich das Potenzial, das Vorgehen bei der Matrixmultiplikation
-zu verbessern. So könnte man die \texttt{for()}-Schleifen so umstrukturieren, dass man diese in kleinere
+und die daraus resultierende Performance zu verbessern. So könnte man die \texttt{for()}-Schleifen so umstrukturieren, dass man diese in kleinere
 Iterationsblöcke aufteilt und damit vom Lokalitätsprinzip Gebrauch macht. Ein weiterer Ansatz wäre
 ein paralleles Verfahren, um den Zeitaufwand zu minimieren, in dem mehrere Operationen in einem
 Schritt ausgeführt werden.
 
 \section{Implementierung}
 Bei der Umsetzung der Matrix-Algorithmen ist in erster Linie die Performance-Verbesserung 
-von Bedeutung, daher wurde bei der Implementierung kaum Wert auf eine besonders
-gute Benutzerfreundlichkeit, umfassende Parameterprüfung oder Tests gelegt --
+von Bedeutung, daher wurde bei den eigenen Implementierungen ausschließlich die Sprache 
+\texttt{C} eingesetzt. Von Interesse sind die reinen Algorithmen (Funktionen), es wurde daher
+kaum Wert auf Benutzerfreundlichkeit, umfassende Parameterprüfung oder Tests gelegt --
 man geht davon aus, dass der Nutzer korrekte Eingabewerte verwendet.\newline
 
 Zu Beginn der Implementierung hatte ich für die Matrizen einen Datentyp als
@@ -131,7 +137,7 @@ Zu Beginn der Implementierung hatte ich für die Matrizen einen Datentyp als
 Code sollte auf das Notwendige reduziert sein. Daher werden die einzelnen 
 Matrizen einfach als float-Array umgesetzt. Zur Vereinfachung der verschiedenen
 Verfahren wurde eine Einschränkung auf quadratische Matrizen ($n \times n$) 
-und Parametergrößen als Zweierpotenzen vorgenommen.\newline
+und Parametergrößen (Dimension, Blockgröße) als Zweierpotenzen vorgenommen.\newline
 
 Mit dem Ziel der Optimierungen, wird auch bewusst auf einen guten Coding-Stil verzichtet,
 so werden in den performancerelevanten Bereichen unnötige Funktionsaufrufe oder Variablen vermieden, was einen schlechter lesbaren Code zur Folge hat. So wird \bspw anstatt einer
@@ -148,21 +154,30 @@ Beschreibung ist auf GitHub \cite{ghub} frei verfügbar.
 
 
 \subsection{Standardalgorithmus}
-Der Standardalgorithmus birgt keine großen Überraschungen und wurde in Anlehnung an die 
-Gleichung aus der Aufgabenstellung umgesetzt. In den beiden äußeren Schleifen 
+Der Standardalgorithmus stellt die klassische (naive) Variante der Matrixmultiplikation
+dar, bei der die Ausführung uneingeschränkt über die komplette Dimension $N$ der einzelnen Matrizen 
+stattfindet. Die Funktion \texttt{standardMatrixMul\_f()} erwartet die Eingabematrizen\footnote{
+Eindimensionales float-Array der Größe \texttt{N$\times$N}} \texttt{a} und \texttt{b},
+die Matrix \texttt{result}, welche schrittweise die Ergebnisse der Berechnungen speichert, 
+und die Dimension \texttt{N}.\newline
+
+\lstinputlisting[language=C]{code/std.c}
+
+
+In den beiden äußeren Schleifen 
 wird über die Zeilen und Spalten der Ergebnismatrix \texttt{result} iteriert,
-in der innersten Schleife wird dann die Produktsumme der Eingangsmatrizen (\texttt{a, b}) in der
+in der innersten Schleife wird dann die Produktsumme der Eingangsmatrizen in der
 Variable \texttt{calc} gebildet und der Wert anschließend gespeichert.
 Die einzige Optimierung ist hierbei der direkte Zugriff per Index auf die Matrizen.
 
-\lstinputlisting[language=C]{code/std.c}
 
 \subsection{Cache-optimiertes Verfahren}
 Bei dem Cache-optimierten Verfahren fand die Umsetzung mittels \emph{Loop tiling} statt,
 wodurch die Ausführung der Schleifen effizienter wird. Das Loop tiling gliedert die 
 Matrizen in kleinere Blöcke, auf denen die Matrixmultiplikation durchgeführt wird.
 Dadurch verbleiben Daten, die bald wieder verwendet werden, im schnellen Hauptspeicher der 
-CPU (Cache). \newpage
+CPU (Cache). Damit addressiert man die Problematik der Speicherzugriffe, da gerade sehr große
+Matrizen nicht komplett im Cache gehalten werden können.
 
 \lstinputlisting[language=C]{code/block.c}
 
@@ -224,7 +239,7 @@ Name & Beschreibung \\ \hline
 
 \texttt{\_\_m256 \textbf{\_mm256\_loadu\_ps}} & lädt die Werte aus \texttt{mem\_addr} in einen Vektor und \\
 \texttt{(float const$*$ mem\_addr)} & gibt diesen zurück \\ \hline
-\end{tabular}\newline
+\end{tabular}\\
 
 Durch Einbinden des Headers \texttt{<immintrin.h>} stehen alle AVX-Funktionen bereit.
 
@@ -253,21 +268,31 @@ erzeugt, da dieser eine float-Wert sowieso mit mehreren Werten aus Matrix \textt
 (Zeile \texttt{k}) multipliziert werden muss, daher wird das direkt in einem Schritt erledigt
 und das Ergebnis anschließend an der Stelle \texttt{result\_address} aufsummiert.\newline
 
-Um weniger Overhead zu verursachen, wurde in Zeile 12-17 bewusst auf das explizite Speichern von 
-Zwischenergebnissen verzichtet. Eine serielle (und besser verständliche) Notation der
-Berechnungsvorschrift sieht etwa so aus:
+Die Umsetzung der Ergebnis-Speicherung in \texttt{result} bietet noch Optimierungspotenzial,
+denn es muss nach jeder Vektormultiplikation, der aktuelle Vektor von \texttt{result\_address}
+geladen, auf den Ergebnisvektor aufaddiert und das Ergebnis der Addition wieder an der
+ursprünglichen Stelle gespeichert werden. Es sind also drei AVX-Rufe notwendig um 
+"`\texttt{+=}"' zu realisieren. \newline
+
+Um weniger Overhead zu verursachen, wurde in den Zeilen 12-17 bewusst auf das explizite Speichern von 
+Zwischenergebnissen verzichtet, stattdessen wurden die Rückgaben der Funktionsaufrufe direkt
+für die übergeordnete Funktion verwendet. Eine serielle und besser verständliche Notation der
+Berechnungsvorschrift sieht etwa so aus:\newline
 
 \lstinputlisting[language=C]{code/avx_s.c}
 
+
 \subsection{BLAS}
-Zu Vergleichszwecken sollte eine beliebige BLAS-Bibliothek verwendet werden, welche 
-\ua eine hochoptimierte Implementierung für die Matrixmultiplikation bereitstellt.
-In diesem Fall habe ich mich für ATLAS \cite{atlas} entschieden -- nach erfolgreicher
+Zu Vergleichszwecken sollte eine beliebige BLAS-Softwarebibliothek verwendet werden, welche 
+eine Spezifikation für grundlegende Operationen der linearen Algebra, \ua die Matrixmultiplikation, darstellt. ATLAS \cite{atlas} ist eine hochoptimierte BLAS-Implementation und wurde im 
+Rahmen dieses Praktikums eingesetzt. Nach erfolgreicher
 Installation und Einbinden des Headers \texttt{<cblas.h>} ist die Schnittstelle zu BLAS
- verfügbar.\newline
+verfügbar.\newline
 
-% TODO: kürzen?
-
+ATLAS wurde mit Fokus auf eine sehr gute Performance entworfen, zentraler Punkt ist hierbei die
+automatisch-computergestützte Optimierung\footnote{Automated Empirical Optimization of Software (AEOS)}.
+So werden relevante Parameter an ein konkretes System angepasst und aus einer Anzahl verschiedener Funktions-Implementierungen eine geeignete gewählt. Außerdem kann mittels \emph{Code generation}
+Programmcode erzeugt werden, der eine besonders gute Performance auf dem System erreicht.\newline
 
 Um nun wie bei den anderen Verfahren eine Matrixmultiplikation auf float-Werten auszuführen, 
 bietet die Bibliothek den Funktionsruf \texttt{cblas\_sgemm(…)} (Single Precision, General Matrix Multiplication) an, wodurch allgemein die Gleichung  $C = \alpha \cdot op(A) \cdot op(B) + 
@@ -280,7 +305,7 @@ der Form $C\,= A \cdot B$.
 
 Das Benchmarkprogramm wurde im Rahmen der \texttt{main()}-Funktion umgesetzt,
 der Code ist so aufgebaut, dass jedes Verfahren mehrmals (R) ausgeführt 
-und aus der benötigten Zeit der Durschnitt gebildet wird. Die notwendigen Parameter
+und aus der benötigten Zeit der Durchschnitt gebildet wird. Die notwendigen Parameter
 (Matrixgröße, Blockgröße, Wiederholungsanzahl) müssen direkt über die Kommandozeile übergeben werden.
 Eine Ausführung mit $N = 1024, BS = 8, R = 5$ sieht dann so aus: \texttt{./a.out 1024 8 5}.
 \newline
@@ -329,11 +354,10 @@ Algorithmus, was wohl daran liegt, dass für solch kleine Matrizen das Loop tili
 Overhead als tatsächlichen Nutzen erbringt.\newline
 
 Der Algorithmus mittels AVX ist für kleine und mittelgroße ($64-512$) Matrizen sehr gut
-geeignet, im Vergleich zu Verfahren 1/2 werden deutlich bessere Zeiten erzielt
+geeignet, im Vergleich zu Verfahren 1 und 2 werden deutlich bessere Zeiten erzielt
 ($\approx 3\times$).
 Das Cache-optimierte Verfahren verbessert die benötigte Laufzeit mit wachsendem \texttt{N}
-und erreicht bei $N=2048$ ein besseres Ergebnis als AVX.
-Für kleine Matrizen ist zumindest das AVX-Verfahren noch in grober Nähe von BLAS,
+und erreicht bei $N=2048$ ein besseres Ergebnis als AVX.Für kleine Matrizen ist zumindest das AVX-Verfahren noch in grober Nähe von BLAS,
 jedoch verbessert sich der BLAS-Speedup mit steigender Matrixgröße im Verhältnis
 zu Verfahren 2/3 sehr stark, das Optimierungspotenzial nimmt wohl auch mit der Matrixgröße zu.
 \newline
@@ -345,7 +369,7 @@ Durchläufe zum Mitteln des Ergebnisses eingesetzt werden.
 
 \subsection{Einfluss der Blockgröße}\label{chp:BS}
 Für das Cache-optimierte Verfahren sollte der Einfluss der Blockgröße auf die Laufzeit
-untersucht werden. Grundsätzlich machen natürlich nur Blockgrößen (BS): $BS \leq N$
+untersucht werden. Grundsätzlich machen natürlich nur Blockgrößen (BS): $BS \leq N/2$
 Sinn, damit die Matrizen auch tatsächlich in kleinere Blöcke unterteilt werden.
 Die Tabelle zeigt die Messwerte für verschiedene Matrixgrößen \texttt{N} (erste Spalte)
 und mehrere \texttt{BS} (restliche Spalten), für die gilt: $BS \ll N$.
@@ -391,8 +415,7 @@ deshalb eine Lastverteilung \zB mit OpenMP sein.\newline
 In Systemen, die mehrere Cache-Level unterstützen, kann das Blocking mehr als $1\times$ angewandt werden,
 um das Lokalitätsprinzip in der Speicherverwaltung weiter auszunutzen.
 Die Implementierung von ATLAS macht in einer sehr effizienten Weise vom Caching 
-und anderen Optimierungsmöglichkeiten\footnote{Automated Empirical Optimization of Software (AEOS):
-Parameterization, Multiple Implementation, Code Generation} Gebrauch, ein großer Vorteil
+und anderen Optimierungsmöglichkeiten\footnote{AEOS} Gebrauch, ein großer Vorteil
 liegt hier beim Autotuning -- so wird die Blockgröße und andere Parameter direkt für das 
 Ziel-System automatisch optimiert.\newline
 

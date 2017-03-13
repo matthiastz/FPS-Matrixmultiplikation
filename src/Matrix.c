@@ -76,11 +76,11 @@ bool nearlyEqual(float a, float b, float epsilon) {
 int standardMatrixMul_f(float* a, float* b, float* result, int N) {
     float calc;
 
-    for (int i = 0; i < N ; ++i) {
-        for (int j = 0; j < N ; ++j) {
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
 
             calc = 0.0;
-            for (int k = 0; k < N ; ++k) {
+            for (int k = 0; k < N; ++k) {
                 calc += a[(N * i) + k] * b[(N * k) + j];
             }
             result[(N * i) + j] = calc;
