@@ -305,22 +305,24 @@ der Form $C\,= A \cdot B$.
 
 Das Benchmarkprogramm wurde im Rahmen der \texttt{main()}-Funktion umgesetzt,
 der Code ist so aufgebaut, dass jedes Verfahren mehrmals (R) ausgeführt 
-und aus der benötigten Zeit der Durchschnitt gebildet wird. Die notwendigen Parameter
+und aus der benötigten Zeit anschließend der Durchschnitt gebildet wird. Die notwendigen Parameter
 (Matrixgröße, Blockgröße, Wiederholungsanzahl) müssen direkt über die Kommandozeile übergeben werden.
-Eine Ausführung mit $N = 1024, BS = 8, R = 5$ sieht dann so aus: \texttt{./a.out 1024 8 5}.
+Eine Ausführung mit $N = 1024, BS = 8$ und $R = 5$ sieht dann so aus: \texttt{./a.out 1024 8 5}.
 \newline
 
 Um sicherzustellen, dass die Berechnungen der einzelnen Verfahren das gleiche Ergebnis
 liefern, wird die Hilfsfunktion \texttt{compareResultMatrices\_f()} eingesetzt, die
 die Werte der konkreten Ergebnismatrix mit denen vom Standardalgorithmus vergleicht.
-Hier noch einmal der Hinweis, dass primär der Nutzer für korrekte Eingaben verantwortlich ist, 
-grob falsche numerische Werte werden jedoch abgefangen.
-Nach erfolgreicher Ausführung aller Verfahren ist dann im Ordner \texttt{result/} eine Textdatei (Name
-siehe Konsole) mit den Ergebnissen und zugehörigen Parametern verfügbar. \newline
+Hier noch einmal der Hinweis, dass primär der Nutzer für korrekte/sinnvolle Eingaben verantwortlich ist, 
+grob falsche numerische Werte werden jedoch abgefangen.\newline
+
+Für jeden erfolgreichen Durchlauf des Programms (Benchmark) wird dann im Ordner \texttt{result/} eine 
+neue Textdatei (Name siehe Konsole) mit den zugehörigen Parametern und Ergebnissen der
+einzelnen Verfahren erstellt. \newline
 
 Als Testsystem kam ein Intel i5-3570K $@$ 3.40GHz zum Einsatz, bei der
-Kompilierung des Programms mit dem \texttt{gcc} wurde das Optimierungslevel \texttt{O2} verwendet.
-Jedes Verfahren wird für die unterschiedlichen
+Kompilierung des Programms mit dem \texttt{gcc} wird das Optimierungslevel \texttt{O2} (siehe Makefile)
+verwendet. Jedes Verfahren wird für die unterschiedlichen
 Parameter $10 \times$ ausgeführt und aus der benötigten Zeit wurde dann der
 Durchschnitt gebildet.
 
@@ -336,7 +338,7 @@ Verfahrens in Relation zum Standardalgorithmus.
 \begin{center}
 \begin{tabular}{| l | l || l || l || l |}
 \hline
-N $\diagdown$ Verf. & Std.algor. & Cache-opt. & Parallel (AVX) & BLAS  \\ \hline
+N $\diagdown$ Verf. & Std.algor. & Cache-opt. & Parallel (AVX) & BLAS (ATLAS)  \\ \hline
 
 64 & 0.474 ms & 0.534 ms | 0.89$\times$ & 0.177 ms | 2.68$\times$ & 0.092 ms | 5.15$\times$  \\ \hline
 128 & 3.962 ms & 3.418 ms | 1.16$\times$ & 1.186 ms | 3.34$\times$ & 0.427 ms | 9.27$\times$  \\ \hline 
@@ -348,7 +350,7 @@ N $\diagdown$ Verf. & Std.algor. & Cache-opt. & Parallel (AVX) & BLAS  \\ \hline
 \end{center}
 
 Wie zu erwarten liefert der Standardalgorithmus \iAllg die schlechteste Laufzeit aller 
-Verfahren und die BLAS-Bibliothek deutlich die beste Performance.
+Verfahren und ATLAS deutlich die beste Performance.
 Eine Ausnahme gilt für $N=64$, dort ist die langsamste Technik der Cache-optimierte
 Algorithmus, was wohl daran liegt, dass für solch kleine Matrizen das Loop tiling mehr
 Overhead als tatsächlichen Nutzen erbringt.\newline
@@ -357,13 +359,34 @@ Der Algorithmus mittels AVX ist für kleine und mittelgroße ($64-512$) Matrizen
 geeignet, im Vergleich zu Verfahren 1 und 2 werden deutlich bessere Zeiten erzielt
 ($\approx 3\times$).
 Das Cache-optimierte Verfahren verbessert die benötigte Laufzeit mit wachsendem \texttt{N}
-und erreicht bei $N=2048$ ein besseres Ergebnis als AVX.Für kleine Matrizen ist zumindest das AVX-Verfahren noch in grober Nähe von BLAS,
-jedoch verbessert sich der BLAS-Speedup mit steigender Matrixgröße im Verhältnis
+und erreicht bei $N=2048$ ein besseres Ergebnis als AVX. Für kleine Matrizen ist zumindest das AVX-Verfahren noch in grober Nähe von ATLAS,
+jedoch verbessert sich der ATLAS-Speedup mit steigender Matrixgröße im Verhältnis
 zu Verfahren 2/3 sehr stark, das Optimierungspotenzial nimmt wohl auch mit der Matrixgröße zu.
 \newline
 
+Um die benötigte Zeit der einzelnen Verfahren für verschiedene $N$ als Verlauf darzustellen,
+folgt nun eine grafische Darstellung, die eine Idee davon geben soll, wie sich die unterschiedlichen
+Ansätze zeitlich verhalten. Als Daten für diesen Plot dienten die Laufzeiten für $N \in 64, 128, \ldots ,
+2048$ bei einer konstanten Blockgröße von $8$.
+
+\begin{center}
+\includegraphics[width=0.85\textwidth]{bilder/bm1.pdf}
+\end{center}
+
+Die Dimension $y$ (Laufzeit) wurde bewusst etwas nach oben eingeschränkt, um den Verlauf
+im unteren Bereich besser darstellen zu können. Denn der Standardalgorithmus 
+steigt für $N>1000$ extrem stark an, $N$ wurde von $1024$ auf $2048$ verdoppelt, 
+der Unterschied in der benötigten Zeit liegt bei $\approx 27\times$, schon fast im Bereich von
+Minuten. Der Einsatz dieses
+Verfahrens für $N \geq 2048 $ ist nicht empfehlenswert, da die Performance un­ver­hält­nis­mä­ßig schlecht im Vergleich zu den restlichen Techniken ist.\newline
+
+Der Verlauf bei den optimierten Verfahren (Cache, AVX) ist für die betrachteten $N$ nah beieinander,
+die Performance ist vergleichbar, dennoch nimmt die Laufzeit mit wachsendem $N$ deutlich zu.
+Die ATLAS-Implementierung ist für die verschiedenen $N$ sehr performant, je größer $N$ wird, desto
+klarer wird der Vorteil dieses Verfahrens gegenüber der restlichen.\newline
+
 Es wurden keine $N>2048$ betrachtet, da bereits für $N=2048$
-der Standardalgorithmus eine relativ lange Rechenzeit benötigt, vor allem wenn weiterhin mehrere
+der Standardalgorithmus eine lange Rechenzeit benötigt, vor allem wenn weiterhin mehrere
 Durchläufe zum Mitteln des Ergebnisses eingesetzt werden.
 
 
