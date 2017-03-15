@@ -114,8 +114,8 @@ benötigen wir für jedes einzelne Element $c$ den selben Zeilenvektor aus $A$, 
 Spaltenvektoren von $B$ analog.
 Wenn die Datenzugriffe, wie beim Standardalgorithmus, also rein iterativ stattfinden,
 wird das Speicherverhalten ignoriert und damit \emph{Cache Misses}\footnote{Die zu lesenden oder
-schreibenden Daten liegen nicht im Cache, daher muss auf den Hauptspeicher zugegriffen werden.
-$\rightarrow$ größere Latenz}
+schreibenden Daten liegen nicht im Cache, daher muss auf den Hauptspeicher zugegriffen werden
+$\rightarrow$ höhere Latenz}
  in Kauf genommen. \newline
 
 
@@ -413,8 +413,9 @@ Es ist erkennbar, dass die Bestzeiten mit Blockgrößen von 8 \bzw 16 erreicht w
 Matrizen dieser Dimension passen auch problemlos in den L1-Cache der eingesetzten CPU
 und können daher theoretisch sehr effizient im Rechenprozess verarbeitet werden.
 Interessant ist der Fall $N=2048$, die Entscheidung zwischen $BS=4$ und $BS=8$
-sorgt für einen Speedup von $\approx 2\times$ ($4\rightarrow8$), die Wahl einer
-passenden Blockgröße hat also großen Einfluss auf die Performance dieses Verfahrens.
+sorgt für einen Speedup von $\approx 2\times$, ebenso zeigen die anderen
+Ergebnisse (\zB $N=2048$, BS: $16 \leftrightarrow 64$), dass die Wahl einer
+passenden Blockgröße großen Einfluss auf die Performance dieses Verfahrens hat.
 \newline
 
 Das Blocking\footnote{Das Aufteilen der Gesamtmatrix in kleinere Teilmatrizen} macht für
@@ -447,6 +448,13 @@ Loop tiling für sehr kleine Blockgrößen nicht sinnvoll ist, lässt die Vermut
 dass eine Kombination aus den beiden Verfahren eine weitere Optimierungsmöglichkeit 
 bietet. So könnte durch das Blocking die konkrete Matrix auf einen sinnvollen Wert verkleinert
  \ref{chp:BS} und auf den Teilmatrizen dann die parallele Berechnung mit AVX vollzogen werden.
+\newline
+ 
+Im direkten Vergleich zwischen den einzelnen Verfahren (Benchmark) ist auch klar geworden, dass die 
+Matrixmultiplikation für sehr große Dimensionen $N$ eine gewisse Notwendigkeit zur Optimierung
+hat. Die zeitliche Differenz vom Standardverfahren zu den optimierten Verfahren wird immer
+gravierender und ist spätestens bei $N=2048$ nicht mehr akzeptabel. Als einzige Implementierung
+bietet ATLAS eine konstant gute Performance für unterschiedliche $N$.
 
 
 \section{Quellen}
